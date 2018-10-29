@@ -39,7 +39,7 @@ D:\OSG> git clone https://github.com/openscenegraph/OpenSceneGraph.git
 
 ## Настройка cmake
 
-Для корректной работы cmake нам следует отредактировать файл <путь к cmake>\share\cmake-x.yy\Modules\CMakeMinGWFindMake.cmake. По-умолчанию он выгладит так
+Для корректной работы cmake нам следует отредактировать файл ** путь-установки-cmake\share\cmake-x.yy\Modules\CMakeMinGWFindMake.cmake**. По-умолчанию он выгладит так
 
 ```cmake
 # Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
