@@ -39,7 +39,7 @@ D:\OSG> git clone https://github.com/openscenegraph/OpenSceneGraph.git
 
 ## Настройка cmake
 
-Для корректной работы cmake нам следует отредактировать файл ** путь-установки-cmake\share\cmake-x.yy\Modules\CMakeMinGWFindMake.cmake**. По-умолчанию он выгладит так
+Для корректной работы cmake нам следует отредактировать файл ** путь-установки-cmake\share\cmake-3.13\Modules\CMakeMinGWFindMake.cmake**. По-умолчанию он выгладит так
 
 ```cmake
 # Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
@@ -81,3 +81,102 @@ find_program(CMAKE_MAKE_PROGRAM mingw32-make.exe PATHS
 mark_as_advanced(CMAKE_MAKE_PROGRAM CMAKE_SH)
 ```
 
+Теперь запускаем командный интерпретатор cmd, ярлык на который находится по пути Пуск->Программы->Qt->Qt 5.11.2->Qt 5.11.2 for Desktop (MinGW 5.3.0 32bit)
+
+![](https://habrastorage.org/webt/rp/wz/1n/rpwz1njpkzuicu-9iw2mabmzvbi.png)
+
+Запущенный сеанс командной строки настраивает всё окружение, необходимое для работы средств сборки mingw32. Переходим в каталог с исходниками OSG
+```
+C:\Qt\Qt5.11.2\5.11.2\mingw53_32>D:
+D:\> cd OSG\build-win32-debug
+```
+
+Даем команду
+
+```
+D:\OSG\build-win32-debug>cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX=E:\Apps\OSG -DCMAKE_BUILD_TYPE=DEBUG ../OpenSceneGraph
+```
+
+Разберем смысл параметров подробнее:
+* -G "MinGW Makefiles" - указывает, что необходимо сгенерировать Makefile для утилиты mingw32-make 
+* -DCMAKE_INSTALL_PREFIX=E:\Apps\OSG - устанавливаем путь, по которому будет установлен OSG
+* -DCMAKE_BUILD_TYPE=DEBUG - указывает, что следует собирать отладочную версию движка.
+
+Выполнение команды проверяет готовность окружения для сборки, генерирует сценарий сборки и следующий выхлоп
+
+```
+-- The C compiler identification is GNU 5.3.0
+-- The CXX compiler identification is GNU 5.3.0
+-- Check for working C compiler: C:/Qt/Qt5.11.2/Tools/mingw530_32/bin/gcc.exe
+-- Check for working C compiler: C:/Qt/Qt5.11.2/Tools/mingw530_32/bin/gcc.exe -- works
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Check for working CXX compiler: C:/Qt/Qt5.11.2/Tools/mingw530_32/bin/g++.exe
+-- Check for working CXX compiler: C:/Qt/Qt5.11.2/Tools/mingw530_32/bin/g++.exe -- works
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Looking for pthread.h
+-- Looking for pthread.h - found
+-- Looking for pthread_create
+-- Looking for pthread_create - found
+-- Found Threads: TRUE
+-- Found OpenGL: opengl32
+-- Could NOT find EGL (missing: EGL_INCLUDE_DIR)
+-- Checking windows version...
+-- Performing Test GL_HEADER_HAS_GLINT64
+-- Performing Test GL_HEADER_HAS_GLINT64 - Failed
+-- Performing Test GL_HEADER_HAS_GLUINT64
+-- Performing Test GL_HEADER_HAS_GLUINT64 - Failed
+-- 32 bit architecture detected
+-- Could NOT find Freetype (missing: FREETYPE_LIBRARY FREETYPE_INCLUDE_DIRS)
+-- Could NOT find JPEG (missing: JPEG_LIBRARY JPEG_INCLUDE_DIR)
+-- Could NOT find Jasper (missing: JASPER_LIBRARIES JASPER_INCLUDE_DIR JPEG_LIBRARIES)
+-- Could NOT find LibXml2 (missing: LIBXML2_LIBRARY LIBXML2_INCLUDE_DIR)
+-- Could NOT find ZLIB (missing: ZLIB_INCLUDE_DIR)
+-- Could NOT find ZLIB (missing: ZLIB_INCLUDE_DIR)
+-- Could NOT find GDAL (missing: GDAL_LIBRARY GDAL_INCLUDE_DIR)
+-- Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE)
+-- Could NOT find CURL (missing: CURL_LIBRARY CURL_INCLUDE_DIR)
+-- Trying to find DCMTK expecting DCMTKConfig.cmake
+-- Trying to find DCMTK expecting DCMTKConfig.cmake - failed
+-- Trying to find DCMTK relying on FindDCMTK.cmake
+-- Please set DCMTK_DIR and re-run configure (missing: DCMTK_config_INCLUDE_DIR DCMTK_dcmdata_INCLUDE_DIR DCMTK_dcmimage_INCLUDE_DIR DCMTK_dcmimgle_INCLUDE_DIR DCMTK_dcmjpeg_INCLUDE_DIR DCMTK_dcmjpls_INCLUDE_DIR DCMTK_dcmnet_INCLUDE_DIR DCMTK_dcmpstat_INCLUDE_DIR DCMTK_dcmqrdb_INCLUDE_DIR DCMTK_dcmsign_INCLUDE_DIR DCMTK_dcmsr_INCLUDE_DIR DCMTK_dcmtls_INCLUDE_DIR DCMTK_ofstd_INCLUDE_DIR DCMTK_oflog_INCLUDE_DIR)
+-- Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE)
+-- Could NOT find GStreamer (missing: GSTREAMER_INCLUDE_DIRS GSTREAMER_LIBRARIES GSTREAMER_VERSION GSTREAMER_BASE_INCLUDE_DIRS GSTREAMER_BASE_LIBRARIES GSTREAMER_APP_INCLUDE_DIRS GSTREAMER_APP_LIBRARIES GSTREAMER_PBUTILS_INCLUDE_DIRS GSTREAMER_PBUTILS_LIBRARIES) (found version "")
+-- Could NOT find SDL2 (missing: SDL2_LIBRARY SDL2_INCLUDE_DIR)
+-- Could NOT find SDL (missing: SDL_LIBRARY SDL_INCLUDE_DIR)
+-- Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE)
+-- Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE)
+-- Could NOT find PkgConfig (missing: PKG_CONFIG_EXECUTABLE)
+-- Could NOT find JPEG (missing: JPEG_LIBRARY JPEG_INCLUDE_DIR)
+-- Could NOT find ZLIB (missing: ZLIB_INCLUDE_DIR)
+-- Could NOT find PNG (missing: PNG_LIBRARY PNG_PNG_INCLUDE_DIR)
+-- Could NOT find TIFF (missing: TIFF_LIBRARY TIFF_INCLUDE_DIR)
+-- g++ version 5.3.0
+-- Performing Test _OPENTHREADS_ATOMIC_USE_GCC_BUILTINS
+-- Performing Test _OPENTHREADS_ATOMIC_USE_GCC_BUILTINS - Success
+-- Performing Test _OPENTHREADS_ATOMIC_USE_MIPOSPRO_BUILTINS
+-- Performing Test _OPENTHREADS_ATOMIC_USE_MIPOSPRO_BUILTINS - Failed
+-- Performing Test _OPENTHREADS_ATOMIC_USE_SUN
+-- Performing Test _OPENTHREADS_ATOMIC_USE_SUN - Failed
+-- Performing Test _OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED
+-- Performing Test _OPENTHREADS_ATOMIC_USE_WIN32_INTERLOCKED - Success
+-- Performing Test _OPENTHREADS_ATOMIC_USE_BSD_ATOMIC
+-- Performing Test _OPENTHREADS_ATOMIC_USE_BSD_ATOMIC - Failed
+-- Configuring done
+-- Generating done
+-- Build files have been written to: D:/OSG/build-win32-debug
+```
+
+говорит нам о том, что можно приступать к сборке. Даем команду
+
+```
+D:\OSG\build-win32-debug>mingw32-make -j9
+```
+можно, как в моем примере, указать число потоков сборки, если у вас многоядерный процессор (ключ -j). Начнется процесс сборки, занимающий на моем компьютере около восьми минут
+
+![](https://habrastorage.org/webt/ly/ng/_7/lyng_7y5k6a8zqm8207-3xeuufg.png)
