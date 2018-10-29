@@ -85,3 +85,51 @@ osg::ref_ptr<osg::Node> node = tmpNode; // но лучше завершить р
 
 ## Отслеживание управляемых объектов
 
+Для иллюстрации работы механизма умных указателей в OSG напишем следующий синтетический пример
+
+```cpp
+#ifndef     MAIN_H
+#define     MAIN_H
+
+#include    <osg/ref_ptr>
+#include    <osg/Referenced>
+#include    <iostream>
+
+#endif // MAIN_H
+```
+
+```cpp
+#include    "main.h"
+
+class MonitoringTarget : public osg::Referenced
+{
+public:
+
+    MonitoringTarget(int id) : _id(id)
+    {
+        std::cout << "Constructing target " << _id << std::endl;
+    }
+
+protected:
+
+    virtual ~MonitoringTarget()
+    {
+        std::cout << "Dsetroying target " << _id << std::endl;
+    }
+
+    int _id;
+};
+
+int main(int argc, char *argv[])
+{
+    (void) argc;
+    (void) argv;
+
+    osg::ref_ptr<MonitoringTarget> target = new MonitoringTarget(0);
+    std::cout << "Referenced count before referring: " << target->referenceCount() << std::endl;
+    osg::ref_ptr<MonitoringTarget> anotherTarget = target;
+    std::cout << "Referenced count after referring: " << target->referenceCount() << std::endl;
+
+    return 0;
+}
+```
