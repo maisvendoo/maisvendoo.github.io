@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Введение в OpenSceneGraph: Трассировка, уведомления, логирование"
-date:   2018-10-29 19:57:00 +0300
+date:   2018-10-29 21:50:00 +0300
 categories: jekyll update
 ---
 
