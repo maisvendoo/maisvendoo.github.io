@@ -42,4 +42,30 @@ int main(int argc, char *argv[])
 
 ![](https://habrastorage.org/webt/41/le/8p/41le8pjjdv2q-in3idhgnpe6-ao.png)
 
+Запустив программу на выполнение получаем результат (моделька грузовика [взята из того же OpenSceneGraph-Data](https://github.com/openscenegraph/OpenSceneGraph-Data.git)) 
+
 ![](https://habrastorage.org/webt/t-/_o/bb/t-_obbiwlzwuax1e336kqd6tosy.png)
+
+Теперь разберем пример построчно
+
+```cpp
+osg::ArgumentParser args(&argc, argv);
+```
+
+создает экземпляр класса парсера командной строки osg::ArgumentParser. При создании конструктору класса передаются аргументы, принимаемые функцией main() от операционной системы.
+
+```cpp
+std::string filename;
+args.read("--model", filename);
+```
+
+выполняем разбор аргументов, а именно ищем среди них ключ "--model", помещая его значение в строку filename. Таким образом, посредством этого ключа мы передаем в программу имя файла с трехмерной моделью. Далее мы загружаем эту модель и отображаем её
+
+```cpp
+osg::ref_ptr<osg::Node> root = osgDB::readNodeFile(filename);
+osgViewer::Viewer viewer;
+viewer.setSceneData(root.get());
+
+return viewer.run();
+```
+
