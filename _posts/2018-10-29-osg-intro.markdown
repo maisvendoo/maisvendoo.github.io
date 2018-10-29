@@ -124,7 +124,7 @@ SOURCES += $$files(./src/*.cpp)
 
 После открытия проекта увидим следующую картину
 
-![](https://habrastorage.org/webt/v2/rj/d9/v2rjd9w2dbadhc7ewfezgrvecgk.png>
+![](https://habrastorage.org/webt/v2/rj/d9/v2rjd9w2dbadhc7ewfezgrvecgk.png>)
 
 Напишем такой код в файле include/main.h
 
