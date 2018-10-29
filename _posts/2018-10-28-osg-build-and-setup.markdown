@@ -2,8 +2,7 @@
 layout: post
 title:  "Введение в OpenSceneGraph: Сборка и установка"
 date:   2018-10-28 09:19:00 +0300
-categories: jekyll update
-excerpt_separator:  <!--more-->
+categories: openscenegraph
 ---
 
 [OpenSceneGraph](http://www.openscenegraph.org/) - открытая кроссплатформенная библиотека, написанная на C++ и представляющая собой графический движок, предоставляющий программисту объектный интерфейс к библиотеке OpenGL. Несмотря на слабую известность в нашей стране, данный движок применяется за рубежем много где, например он является основой для свободного авиасимулятора FlightGear и ряда других проектов. Русскоязычной документации по нему исчезающе мало, а среди англоязычной можно отметить лишь серию книг от разработчиков: [OpenSceneGraph 3.0. Beginner's Guide](https://www.amazon.com/OpenSceneGraph-3-0-Beginners-Rui-Wang/dp/1849512825) и [OpenSceneGraph 3. Cookbook](https://www.amazon.com/OpenSceneGraph-3-Cookbook-Rui-Wang/dp/184951688X).
