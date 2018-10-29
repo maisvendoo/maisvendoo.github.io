@@ -1,0 +1,17 @@
+---
+layout: post
+title:  "Введение в OpenSceneGraph"
+date:   2018-10-29 09:19:00 +0300
+categories: jekyll update
+---
+
+Знакомство с графическим движком OpenSceneGraph начнем с простейшего примера, как это обычно принято в программировании с некоего "Hello world!". Напишем такой код
+
+````C
+#ifndef		MAIN_H
+#define		MAIN_H
+
+#include	<osgDB/ReadFile>
+#include	<osgViewer/Viewer>
+
+#endif
