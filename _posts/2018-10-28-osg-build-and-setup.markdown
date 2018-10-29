@@ -81,6 +81,8 @@ find_program(CMAKE_MAKE_PROGRAM mingw32-make.exe PATHS
 mark_as_advanced(CMAKE_MAKE_PROGRAM CMAKE_SH)
 ```
 
+## Сборка и установка оладочной и релизной версий движка
+
 Теперь запускаем командный интерпретатор cmd, ярлык на который находится по пути Пуск->Программы->Qt->Qt 5.11.2->Qt 5.11.2 for Desktop (MinGW 5.3.0 32bit)
 
 ![](https://habrastorage.org/webt/rp/wz/1n/rpwz1njpkzuicu-9iw2mabmzvbi.png)
@@ -190,4 +192,14 @@ D:\OSG\build-win32-debug> mingw32-make install
 
 ![](https://habrastorage.org/webt/vl/no/n8/vlnon8cxexvn6lfab93h5haucu8.png)
 
+Теперь соберем релизную версию движка, создав другой каталог сборки
+```
+D:\OSG\build-win32-debug>cd ..
+D:\OSG> mkdir build-win32-release
+D:\OSG>cd build-win32-release
+D:\OSG\build-win32-release> cmake -G "MinGW Makefiles" -DCMAKE_INSTALL_PREFIX=E:\Apps\OSG ../OpenSceneGraph
+D:\OSG\build-win32-release> mingw32-make -j9
+D:\OSG\build-win32-release> mingw32-make install
+```
 
+## Настройка переменных окружения
