@@ -9,7 +9,7 @@ categories: jekyll update
 
 ```
 OSG-lessons/
-	|
+	|-data/
 	|-OSG-lessons/
 		|
 		|-hello/
@@ -122,6 +122,10 @@ SOURCES += $$files(./src/*.cpp)
 
 ![](https://habrastorage.org/webt/q4/lv/ck/q4lvckaswfcv8kd77xinb5z5yfu.png)
 
+После открытия проекта увидим следующую картину
+
+![](https://habrastorage.org/webt/v2/rj/d9/v2rjd9w2dbadhc7ewfezgrvecgk.png>
+
 Напишем такой код в файле include/main.h
 
 ```cpp
@@ -151,6 +155,8 @@ int main(int argc, char *argv[])
     return viewer.run();
 }
 ```
+
+Файл с моделькой самолета необходимо скопировать в каталог data/. Этот файл, а так же многое из того, что будет использовано в данном цикле статей, можно скачать из [репозитория OpenSceneGraph-Data](https://github.com/openscenegraph/OpenSceneGraph-Data)
 
 После компиляции и запуска мы получим что-то вроде этого
 
