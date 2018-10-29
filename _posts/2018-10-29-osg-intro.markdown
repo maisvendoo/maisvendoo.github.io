@@ -5,9 +5,9 @@ date:   2018-10-29 09:19:00 +0300
 categories: jekyll update
 ---
 
-Знакомство с графическим движком OpenSceneGraph начнем с простейшего примера, как это обычно принято в программировании с некоего "Hello world!". Напишем такой код
+Знакомство с графическим движком OpenSceneGraph начнем с простейшего примера, как это обычно принято в программировании с некоего "Hello world!". Напишем такой код в файле main.h
 
-```C
+```cpp
 #ifndef		MAIN_H
 #define		MAIN_H
 
@@ -16,3 +16,22 @@ categories: jekyll update
 
 #endif
 ```
+
+Далее реализуем основное тело программы в файле main.cpp
+
+```cpp
+#include    "main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc;
+    (void) argv;
+
+    osg::ref_ptr<osg::Node> root = osgDB::readNodeFile("../data/cessna.osg");
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+
+    return viewer.run();
+}
+```
+
