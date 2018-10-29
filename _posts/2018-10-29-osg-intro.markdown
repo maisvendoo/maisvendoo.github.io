@@ -7,7 +7,7 @@ categories: jekyll update
 
 Знакомство с графическим движком OpenSceneGraph начнем с простейшего примера, как это обычно принято в программировании с некоего "Hello world!". Напишем такой код
 
-````C
+```C
 #ifndef		MAIN_H
 #define		MAIN_H
 
@@ -15,3 +15,4 @@ categories: jekyll update
 #include	<osgViewer/Viewer>
 
 #endif
+```
