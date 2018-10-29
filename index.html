@@ -1,0 +1,12 @@
+<html>
+        <body>
+                <ul>
+                    {% for post in site.posts %}
+                    <li>
+                        <a href="{{ post.permalink }}">{{ <h1>post.title</h1> }}</a>
+                        <p>{{ post.excerpt }}</p>
+                    </li>
+                    {% endfor %}
+                </ul>
+</body>
+</html>
