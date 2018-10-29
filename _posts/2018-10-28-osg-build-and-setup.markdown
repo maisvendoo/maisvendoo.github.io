@@ -29,4 +29,55 @@ categories: jekyll update
 D:\OSG> git clone https://github.com/openscenegraph/OpenSceneGraph.git
 ```
 
-Длительность процесса скачивания зависит от того, насколько широк ваш канал доступа в Интернет. Рано или поздно мы получим у себя локальную копию репозитория OSG.
+Длительность процесса скачивания зависит от того, насколько широк ваш канал доступа в Интернет. Рано или поздно мы получим у себя локальную копию репозитория OSG. 
+
+Скачав исходники создадим рядом каталог build-win32-debug
+
+![](https://habrastorage.org/webt/ah/cs/ug/ahcsugq_vwdefv1f_azxmpyjcc8.png)
+
+В этом каталоге мы будем осуществлять сборку отладочного комплекта OSG. Но прежде
+
+## Настройка cmake
+
+Для корректной работы cmake нам следует отредактировать файл <путь к cmake>\share\cmake-x.yy\Modules\CMakeMinGWFindMake.cmake. По-умолчанию он выгладит так
+
+```cmake
+# Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
+# file Copyright.txt or https://cmake.org/licensing for details.
+
+
+find_program(CMAKE_MAKE_PROGRAM mingw32-make.exe PATHS
+  "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\MinGW;InstallLocation]/bin"
+  c:/MinGW/bin /MinGW/bin
+  "[HKEY_CURRENT_USER\\Software\\CodeBlocks;Path]/MinGW/bin"
+  )
+find_program(CMAKE_SH sh.exe )
+if(CMAKE_SH)
+  message(FATAL_ERROR "sh.exe was found in your PATH, here:\n${CMAKE_SH}\nFor MinGW make to work correctly sh.exe must NOT be in your path.\nRun cmake from a shell that does not have sh.exe in your PATH.\nIf you want to use a UNIX shell, then use MSYS Makefiles.\n")
+  set(CMAKE_MAKE_PROGRAM NOTFOUND)
+endif()
+
+mark_as_advanced(CMAKE_MAKE_PROGRAM CMAKE_SH)
+```
+
+Закоментируем в нем несколько строк, дабы утилита не пыталась искать в нашей системе юниксовый шелл, и не найдя, завершалась с ошибкой
+
+```cmake
+# Distributed under the OSI-approved BSD 3-Clause License.  See accompanying
+# file Copyright.txt or https://cmake.org/licensing for details.
+
+
+find_program(CMAKE_MAKE_PROGRAM mingw32-make.exe PATHS
+  "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\MinGW;InstallLocation]/bin"
+  c:/MinGW/bin /MinGW/bin
+  "[HKEY_CURRENT_USER\\Software\\CodeBlocks;Path]/MinGW/bin"
+  )
+#find_program(CMAKE_SH sh.exe )
+#if(CMAKE_SH)
+#  message(FATAL_ERROR "sh.exe was found in your PATH, here:\n${CMAKE_SH}\nFor MinGW make to work correctly sh.exe must NOT be in your path.\nRun cmake from a shell that does not have sh.exe in your PATH.\nIf you want to use a UNIX shell, then use MSYS Makefiles.\n")
+#  set(CMAKE_MAKE_PROGRAM NOTFOUND)
+#endif()
+
+mark_as_advanced(CMAKE_MAKE_PROGRAM CMAKE_SH)
+```
+
