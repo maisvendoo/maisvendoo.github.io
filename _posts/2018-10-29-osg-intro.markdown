@@ -62,7 +62,67 @@ HEADERS += $$files(./include/*.h)
 SOURCES += $$files(./src/*.cpp)
 ```
 
-Напишем такой код в файле main.h
+Разберем эти письме подробнее
+
+```cmake
+TEMPLATE = app
+TARGET = hello
+DESTDIR = ../../bin
+```
+
+Переменные задают шаблон проекта (app - приложение), имя исполняемого файла (hello) и каталог, куда исполняемый файл помещается после сборки.
+
+```cmake
+win32 {
+
+    OSG_LIB_DIRECTORY = $$(OSG_BIN_PATH)
+    OSG_INCLUDE_DIRECTORY = $$(OSG_INCLUDE_PATH)
+}
+
+unix {
+
+    LIB_DIRECTORY = /opt/osg/lib64
+    OSG_INCLUDE_DIRECTORY = /opt/osg/include
+}
+```
+
+В зависимости от ОС, где собирается проект, определяем переменные, указывающие пути к каталогам библиотек и заголовочных файлов OSG. Вот тут-то нам и пригодились переменные окружения OSG_BIN_PATH и OSG_INCLUDE_PATH - теперь неважно, где установлена библиотека OSG. Любой желающий работать с этим проектом на своем компьютере просто пропишет соотвествующие переменные окружения в своей системе, не редактируя сценарий сборки.
+
+```cmake
+CONFIG(debug, debug|release) {
+
+    TARGET = $$join(TARGET,,,_d)
+
+    LIBS += -L$$OSG_LIB_DIRECTORY -losgd
+    LIBS += -L$$OSG_LIB_DIRECTORY -losgViewerd
+    LIBS += -L$$OSG_LIB_DIRECTORY -losgDBd
+    LIBS += -L$$OSG_LIB_DIRECTORY -lOpenThreadsd
+
+} else {
+
+    LIBS += -L$$OSG_LIB_DIRECTORY -losg
+    LIBS += -L$$OSG_LIB_DIRECTORY -losgViewer
+    LIBS += -L$$OSG_LIB_DIRECTORY -losgDB
+    LIBS += -L$$OSG_LIB_DIRECTORY -lOpenThreads
+
+}
+```
+Здесь мы настраиваем имя исполняемого файла и указываем библиотеки, которые следует компоновать с нашей программой для различных вариантов сборки: как отладочной так и релизной. Отладочные библиотеки OSG имеют суффикс "d" после имени файла. Суффикс "_d" мы добавим так же и к исполняемому файлу проекта, дабы отличать отладочный вариант от релизного.
+
+```cmake
+INCLUDEPATH += $$OSG_INCLUDE_DIRECTORY
+
+INCLUDEPATH += ./include
+
+HEADERS += $$files(./include/*.h)
+SOURCES += $$files(./src/*.cpp)
+```
+
+Ну и наконец определяем пути поиска заголовочных файлов и файлы, включаемые в дерево проекта. Создаем в каталоге include/ пустой файл main.h, а в кталоге src/ - файл main.cpp. Открываем этот проект в QtCreator и настраиваем его так, как показано на скриншоте
+
+![](https://habrastorage.org/webt/q4/lv/ck/q4lvckaswfcv8kd77xinb5z5yfu.png)
+
+Напишем такой код в файле include/main.h
 
 ```cpp
 #ifndef		MAIN_H
@@ -74,7 +134,7 @@ SOURCES += $$files(./src/*.cpp)
 #endif
 ```
 
-Далее реализуем основное тело программы в файле main.cpp
+Далее реализуем основное тело программы в файле include/main.cpp
 
 ```cpp
 #include    "main.h"
