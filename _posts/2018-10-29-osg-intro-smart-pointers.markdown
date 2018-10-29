@@ -210,3 +210,23 @@ Dsetroying target 0
 
 ## Возврат из функции
 
+Добавим в код нашего примера следующую функцию
+
+```cpp
+MonitoringTarget *createMonitoringTarget(int id)
+{
+    osg::ref_ptr<MonitoringTarget> target = new MonitoringTarget(id);
+
+    return target.release();
+}
+```
+
+и заменим вызов оператора new в цикле на вызов этой функции
+
+```cpp
+for (int i = 1; i < 5; i++)
+{
+	osg::ref_ptr<MonitoringTarget> subTarget = createMonitoringTarget(i);
+}
+```
+
