@@ -22,3 +22,101 @@ osg::notify(osg::WARN) << "Some warning message" << std::endl;
 
 В некоторых случаях требуется выводить эти данные не в консоль, а иметь возможность перенаправить данный вывод в файл (в виде лога) либо на любой другой интерфейс, в том числе и графический виджет. Движок содержит специальный класс osg::NotifyHandler обеспечивающий перенаправление уведомленй в нужный разработчику поток вывода.
 
+На простом примере рассмотрим, каким образом можно перенаправить вывод уведомлений, скажем, в текстовый файл лога. Напишем следующий код
+
+**main.h**
+```cpp
+#ifndef     MAIN_H
+#define     MAIN_H
+
+#include    <osgDB/ReadFile>
+#include    <osgViewer/Viewer>
+#include    <fstream>
+
+#endif  //  MAIN_H
+```
+
+**main.cpp**
+```cpp
+#include    "main.h"
+
+class LogFileHandler : public osg::NotifyHandler
+{
+public:
+
+    LogFileHandler(const std::string &file)
+    {
+        _log.open(file.c_str());
+    }
+
+    virtual ~LogFileHandler()
+    {
+        _log.close();
+    }
+
+    virtual void notify(osg::NotifySeverity severity, const char *msg)
+    {
+        _log << msg;
+    }
+
+protected:
+
+    std::ofstream   _log;
+};
+
+int main(int argc, char *argv[])
+{
+    osg::setNotifyLevel(osg::INFO);
+    osg::setNotifyHandler(new LogFileHandler("../logs/log.txt"));
+
+    osg::ArgumentParser args(&argc, argv);
+    osg::ref_ptr<osg::Node> root = osgDB::readNodeFiles(args);
+
+    if (!root)
+    {
+        OSG_FATAL << args.getApplicationName() << ": No data loaded." << std::endl;
+        return -1;
+    }
+
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+
+    return viewer.run();
+}
+```
+
+Для перенаправления вывода напишем класс LogFileHandler, являющийся наследником osg::NotifyHandler. Конструктор и деструктор этого класса управляют открытием и закрытием потока вывода _log, с которым связывается текстовый файл. Метод notify() есть аналогичный петод базового класса, переопределенный нами для вывода в файл уведомлений, передаваемых OSG в процессе работы через параметр msg.
+
+**Класс LogFileHandler**
+```cpp
+class LogFileHandler : public osg::NotifyHandler
+{
+public:
+
+    LogFileHandler(const std::string &file)
+    {
+        _log.open(file.c_str());
+    }
+
+    virtual ~LogFileHandler()
+    {
+        _log.close();
+    }
+
+    virtual void notify(osg::NotifySeverity severity, const char *msg)
+    {
+        _log << msg;
+    }
+
+protected:
+
+    std::ofstream   _log;
+};
+```
+
+Далее, в основной программе выполняем необходимые настройки
+
+```cpp
+osg::setNotifyLevel(osg::INFO);
+```
+устанавливаем уровень уведомлений.
