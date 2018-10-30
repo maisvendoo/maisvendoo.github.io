@@ -25,9 +25,14 @@ vertices->push_back(osg::Vec3(1.0f, 0.0f, 0.0f));
 
 **Атрибуты вершин в OpenSceneGraph**
 
-|---------|----------|-------------------|--------------------------|
-| Атрибут |Тип данных|метод osg::Geometry|Эквивалентный вызов OpenGL|
-|---------|----------|-------------------|--------------------------|
-|Положение|3D-вектор |setVertexArray()   |glVertexPointer()         |
-|Нормаль  |3D-вектор |setNormalArray()   |glNormalPointer()         |
-|Цвет     |4D-вектор |setColorArray()    |glColorPointer()
+|---------------------|-----------------------|------------------------|----------------------------|
+| Атрибут             |Тип данных             |метод osg::Geometry     |Эквивалентный вызов OpenGL  |
+|---------------------|-----------------------|------------------------|----------------------------|
+|Положение            |3D-вектор              |setVertexArray()        |glVertexPointer()           |
+|Нормаль              |3D-вектор              |setNormalArray()        |glNormalPointer()           |
+|Цвет                 |4D-вектор              |setColorArray()         |glColorPointer()            |
+|Вторчный цвет        |4D-вектор              |setSecondaryColorArray()|glSecondaryColorPointerEXT()|
+|Координаты тумана    |Float                  |setFogCoordArray()      |glFogCoordPointerEXT()      |
+|Текстурные координаты|2D или 3D-вектор       |setTexCoordArray()      |glTexCoordPointer()         |
+|Прочие атрибуты      |Определен пользователем|setVertexArribArray()   |glVertexAttribPointerARB()  |
+
