@@ -48,7 +48,7 @@ geom->setColorBinding(osg::Geometry::BIND_OVERALL);
 ```
 то он применяет один цвет ко всей геометрии. Аналогично могут быть настроены взаимосвязи между другими атрибутами путем вызова методов setNormalBinding(), setSecondaryColorBinding(), setFogCoordBinding() и setVertexAttribBinding().
 
-## Специфические инструменты отрисовки
+## Наборы примитивов геометрии
 
 Следующим шагом после определения массивов атрибутов вершин является описание того, как данные вершины будут обработаны рендером. Виртуальный класс osg::PrimitiveSet используется для управления геометрическими примитивами, генерируемыми рендером из набора вершин. Класс osg::Geometry предоставляет несколько методов для работы с наборами примитивов геометрии:
 
@@ -68,3 +68,62 @@ geom->addPrimitiveSet(new osg::DrawArrays(mode, first, count));
 Первый параметр mode задает тип примитива, аналогичный соответсвующим типам примитивов OpenGL: GL_POINTS, GL_LINE_STRIP, GL_LINE_LOOP, GL_LINES, GL_TRIANGLE_STRIP, GL_TRIANGLE_FAN, GL_TRIANGLES, GL_QUAD_STRIP, GL_QUADS и GL_POLYGON.
 
 Первый и второй параметр задают первый индекс в массиве вершин и число вершин, из которых следует генерировать геометрию. **Причем OSG не проверяет, достаточно ли указанного числа вершин для построения заданной режимом геометрии, что может приводить к краху приложения!**
+
+## Пример - рисуем цветной квадрат
+
+Реализуем всё вышеописанное в виде простого примера
+
+**main.h**
+```cpp
+#ifndef     MAIN_H
+#define     MAIN_H
+
+#include    <osg/Geometry>
+#include    <osg/Geode>
+#include    <osgViewer/Viewer>
+
+#endif // MAIN_H
+```
+
+```cpp
+#include    "main.h"
+
+int main(int argc, char *argv[])
+{
+    osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array;
+    vertices->push_back(osg::Vec3(0.0f, 0.0f, 0.0f));
+    vertices->push_back(osg::Vec3(1.0f, 0.0f, 0.0f));
+    vertices->push_back(osg::Vec3(1.0f, 0.0f, 1.0f));
+    vertices->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
+
+    osg::ref_ptr<osg::Vec3Array> normals = new osg::Vec3Array;
+    normals->push_back(osg::Vec3(0.0f, -1.0f, 0.0f));
+
+    osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array;
+    colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+    colors->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+    colors->push_back(osg::Vec4(0.0f, 0.0f, 1.0f, 1.0f));
+    colors->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+
+    osg::ref_ptr<osg::Geometry> quad = new osg::Geometry;
+    quad->setVertexArray(vertices.get());
+
+    quad->setNormalArray(normals.get());
+    quad->setNormalBinding(osg::Geometry::BIND_OVERALL);
+
+    quad->setColorArray(colors.get());
+    quad->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+
+    quad->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, 4));
+
+    osg::ref_ptr<osg::Geode> root = new osg::Geode;
+    root->addDrawable(quad.get());
+
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+
+    return viewer.run();
+}
+```
+
+![](https://habrastorage.org/webt/vn/ps/xd/vnpsxdcpmd9uisdkmhhkkykib48.png)
