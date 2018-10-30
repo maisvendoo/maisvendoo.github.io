@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Введение в OpenSceneGraph: Применение класса osg::Geometry" 
-date:   2018-10-30 11:19:00 +0300
+date:   2018-10-30 13:40:00 +0300
 categories: jekyll update
 ---
 
