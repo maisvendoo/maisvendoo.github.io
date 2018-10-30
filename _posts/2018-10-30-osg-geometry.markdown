@@ -197,3 +197,12 @@ viewer.setSceneData(root.get());
 return viewer.run();
 ```
 
+Приведенный код эквивалентен следующей конструкции на чистом OpenGL
+
+```cpp
+static const GLfloat vertices[][3] = { … };
+glEnableClientState( GL_VERTEX_ARRAY );
+glVertexPointer( 4, GL_FLOAT, 0, vertices );
+glDrawArrays( GL_QUADS, 0, 4 );
+```
+
