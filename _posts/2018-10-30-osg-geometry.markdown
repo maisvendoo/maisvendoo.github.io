@@ -85,6 +85,7 @@ geom->addPrimitiveSet(new osg::DrawArrays(mode, first, count));
 #endif // MAIN_H
 ```
 
+**main.cpp**
 ```cpp
 #include    "main.h"
 
@@ -126,4 +127,73 @@ int main(int argc, char *argv[])
 }
 ```
 
+После компиляции и выполнения получим вот такую красоту
+
 ![](https://habrastorage.org/webt/vn/ps/xd/vnpsxdcpmd9uisdkmhhkkykib48.png)
+
+Данный пример нуждается в пояснении. Итак, первым делом мы создаем массив вершин квадрата, в котором хранятся их координаты
+
+```cpp
+osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array;
+vertices->push_back(osg::Vec3(0.0f, 0.0f, 0.0f));
+vertices->push_back(osg::Vec3(1.0f, 0.0f, 0.0f));
+vertices->push_back(osg::Vec3(1.0f, 0.0f, 1.0f));
+vertices->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
+```
+
+Далее задаем массив нормалей. В нашем простом случае нам не требуется создавать нормаль для каждой вершины - достаточно описать один единичный вектор, направленный перпендикулярно плоскости квадрата к камере
+
+```cpp
+osg::ref_ptr<osg::Vec3Array> normals = new osg::Vec3Array;
+normals->push_back(osg::Vec3(0.0f, -1.0f, 0.0f));
+```
+
+Зададим цвет для каждой из вершин
+
+```cpp
+osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array;
+colors->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+colors->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+colors->push_back(osg::Vec4(0.0f, 0.0f, 1.0f, 1.0f));
+colors->push_back(osg::Vec4(1.0f, 1.0f, 1.0f, 1.0f));
+```
+
+Теперь создаем объект геометрии, где будет хранится описание нашего квадрата, которое будет обработано рендером. Передаем в эту геометрию массив вершин
+
+```cpp
+osg::ref_ptr<osg::Geometry> quad = new osg::Geometry;
+quad->setVertexArray(vertices.get());
+```
+
+Передавая массив нормалей, сообщаем движку, что будет использована одна единственная нормаль для всех вершин, указанием метода связывания ("биндинга") нормалей BIND_OVAERALL
+
+```cpp
+quad->setNormalArray(normals.get());
+quad->setNormalBinding(osg::Geometry::BIND_OVERALL);
+```
+
+Передавая цвета вершин, напротив, указываем, что каждой вершине будет соответствовать собственный цвет
+
+```cpp
+quad->setColorArray(colors.get());
+quad->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+```
+
+Теперь создаем набор примитивов для геометрии. Указываем, что из массива вершин следует генерировать квадратные (GL_QUADS) грани, взяв в качестве первой вершины вершину с индексом 0, а общее число вершин будет равно 4
+
+```cpp
+quad->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, 4));
+```
+
+Ну а передачу геометрии и запуск рендера пояснять, думаю, не стоит
+
+```cpp
+osg::ref_ptr<osg::Geode> root = new osg::Geode;
+root->addDrawable(quad.get());
+
+osgViewer::Viewer viewer;
+viewer.setSceneData(root.get());
+
+return viewer.run();
+```
+
