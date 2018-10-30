@@ -42,3 +42,73 @@ shapeDrawable->setShape(new osg::Box(osg::Vec3(1.0f, 0.0f, 0.0f), 10.0f, 10.0f, 
 Наиболее популярные примитивы представлены в OSG классами osg::Box, osg::Capsule, osg::Cone, osg::Cylinder и osg::Sphere.
 
 Рассмотрим пример применения данного механизма.
+
+**main.h**
+```cpp
+#ifndef     MAIN_H
+#define     MAIN_H
+
+#include    <osg/ShapeDrawable>
+#include    <osg/Geode>
+#include    <osgViewer/Viewer>
+
+#endif // MAIN_H
+```
+
+**main.cpp**
+```cpp
+#include    "main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc;
+    (void) argv;
+
+    osg::ref_ptr<osg::ShapeDrawable> shape1 = new osg::ShapeDrawable;
+    shape1->setShape(new osg::Box(osg::Vec3(-3.0f, 0.0f, 0.0f), 2.0f, 2.0f, 1.0f));
+
+    osg::ref_ptr<osg::ShapeDrawable> shape2 = new osg::ShapeDrawable;
+    shape2->setShape(new osg::Cone(osg::Vec3(0.0f, 0.0f, 0.0f), 1.0f, 1.0f));
+    shape2->setColor(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+
+    osg::ref_ptr<osg::ShapeDrawable> shape3 = new osg::ShapeDrawable;
+    shape3->setShape(new osg::Sphere(osg::Vec3(3.0f, 0.0f, 0.0f), 1.0f));
+    shape3->setColor(osg::Vec4(0.0f, 0.0f, 1.0f, 1.0f));
+
+    osg::ref_ptr<osg::Geode> root = new osg::Geode;
+
+    root->addDrawable(shape1.get());
+    root->addDrawable(shape2.get());
+    root->addDrawable(shape3.get());
+
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+
+    return viewer.run();
+}
+```
+
+Данный пример особенно не нуждается в комментариях: в программе создаются три простейшие фигуры, после компиляции и запуска мы увидим такой результат
+
+![](https://habrastorage.org/webt/r8/e6/np/r8e6np3xt37sjr1ocndxhej1z04.png)
+
+Механизм, приведенный в примере прост и понятен, однако не является самым эффективным способом создания геометрии и может использоваться исключительно для тестов. Для создания геометрии в высокопроизводительных приложениях на базе OSG используется класс osg::Geometry.
+
+Кроме того, OSG содержит класс osg::GLBeginEndAdapter, позволяющий использовать внутри движка "сырой" базовый код OpenGL. Этот класс позволяет создавать геометрию используя метод массива вершин, заключенного между функциями glBegin() и glEnd() как это делается на чистом OpenGL.
+
+Для применения подобного подхода необходимо объявить класс, наследующий от osg::Drawable и переопределить его метод drawImplementation() примерно так
+
+```cpp
+void drawImplementation(osg::RenderInfo &renderInfo) const
+{
+	osg::GLBeginEndAdapter &gl = renderInfo.getState()->getGLBeginEndAdapter();
+	
+	gl.Begin(...);
+		gl.Vertex3fv(...);
+		.
+		.
+		.
+	gl.End();
+}
+```
+
