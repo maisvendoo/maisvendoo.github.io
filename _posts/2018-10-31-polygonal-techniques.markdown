@@ -33,3 +33,78 @@ node->accept(tsv);
 Метод accept() обрабатывает все дочерние узлы, до тех пор, пока указанная операция не будет применена ко всем оконечным нодам этой части дерева сцены, хранящимся в нодах типа osg::Geode.
 
 Попробуем на практике технику тесселяции.
+
+**main.h**
+```cpp
+#ifndef     MAIN_H
+#define     MAIN_H
+
+#include    <osg/Geometry>
+#include    <osg/Geode>
+#include    <osgUtil/Tessellator>
+#include    <osgViewer/Viewer>
+
+#endif
+```
+
+**main.cpp**
+```cpp
+#include    "main.h"
+
+int main(int argc, char *argv[])
+{
+	/*
+		Создаем фигуру вида
+		
+		-----
+		|  _|
+		| |_
+		|   |
+		-----
+	*/
+	
+    osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array;
+    vertices->push_back( osg::Vec3(0.0f, 0.0f, 0.0f) ); // 0
+    vertices->push_back( osg::Vec3(2.0f, 0.0f, 0.0f) ); // 1
+    vertices->push_back( osg::Vec3(2.0f, 0.0f, 1.0f) ); // 2
+    vertices->push_back( osg::Vec3(1.0f, 0.0f, 1.0f) ); // 3
+    vertices->push_back( osg::Vec3(1.0f, 0.0f, 2.0f) ); // 4
+    vertices->push_back( osg::Vec3(2.0f, 0.0f, 2.0f) ); // 5
+    vertices->push_back( osg::Vec3(2.0f, 0.0f, 3.0f) ); // 6
+    vertices->push_back( osg::Vec3(0.0f, 0.0f, 3.0f) ); // 7
+
+    osg::ref_ptr<osg::Vec3Array> normals = new osg::Vec3Array;
+    normals->push_back( osg::Vec3(0.0f, -1.0f, 0.0f) );
+
+    osg::ref_ptr<osg::Geometry> geom = new osg::Geometry;
+    geom->setVertexArray(vertices.get());
+    geom->setNormalArray(normals.get());
+    geom->setNormalBinding(osg::Geometry::BIND_OVERALL);
+    geom->addPrimitiveSet(new osg::DrawArrays(GL_POLYGON, 0, 8));
+
+    osg::ref_ptr<osg::Geode> root = new osg::Geode;
+    root->addDrawable(geom.get());
+
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+
+    return viewer.run();
+}
+```
+
+Исходя из пространсвенного положения вершин в данном примере, видно, что мы пытаемся создать невыпуклый многоугольник из восьми вершин, применяя генерацию одной грани типа GL_POLYGON. Сборка и выполнение этого примера показывают, что того результата, что мы ожидаем, не получается - пример отображается некорректно
+
+![](https://habrastorage.org/webt/yb/d3/0f/ybd30fn9fa9duvxedfyb6igt3ui.png)
+
+Для исправления этой проблемы, построенную геометрию, перед передачей её во вьювер, следует подвергнуть тесселяции
+
+```cpp
+osgUtil::Tessellator ts;
+ts.retessellatePolygons(*geom);
+```
+
+после которой мы получим корректный результат
+
+![](https://habrastorage.org/webt/p7/wj/fa/p7wjfanogrvkbdxksemk5li_vdi.png)
+
+
