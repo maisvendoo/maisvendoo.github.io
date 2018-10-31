@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Введение в OpenSceneGraph: Обновление геометрических атрибутов"
+title:  "Введение в OpenSceneGraph: Перехват геометрических атрибутов"
 date:   2018-10-31 12:28:00 +0300
 categories: jekyll update
 ---
