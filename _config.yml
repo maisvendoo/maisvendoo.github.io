@@ -25,7 +25,7 @@ github_username:  maisvendoo
 # Build settings
 #markdown: kramdown
 markdown: rdiscount
-theme: minima
+theme: minimal
 plugins:
   - jekyll-feed
 
