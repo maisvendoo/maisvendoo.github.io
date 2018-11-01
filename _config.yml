@@ -24,8 +24,8 @@ twitter_username: maisvendoo
 github_username:  maisvendoo
 #show_excerpts: true
 # Build settings
-#markdown: kramdown
-markdown: rdiscount
+markdown: kramdown
+#markdown: rdiscount
 theme: minima
 plugins:
   - jekyll-feed
