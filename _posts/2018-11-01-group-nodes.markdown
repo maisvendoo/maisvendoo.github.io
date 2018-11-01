@@ -45,3 +45,53 @@ for (unsigned int i = 0; i < nodePath.size(); ++i)
 
 ## Пример: добавление моделей в дерево сцены
 
+Проиллюстрируем механизм использвания групп следующим примером
+
+
+**main.h**
+```cpp
+#ifndef     MAIN_H
+#define     MAIN_H
+
+#include    <osg/Group>
+#include    <osgDB/ReadFile>
+#include    <osgViewer/Viewer>
+
+#endif
+```
+
+**main.cpp**
+```cpp
+#include    "main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc, (void) argv;
+
+    osg::ref_ptr<osg::Node> model1 = osgDB::readNodeFile("../data/cessna.osg");
+    osg::ref_ptr<osg::Node> model2 = osgDB::readNodeFile("../data/cow.osg");
+
+    osg::ref_ptr<osg::Group> root = new osg::Group;
+    root->addChild(model1.get());
+    root->addChild(model2.get());
+
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+
+    return viewer.run();
+}
+```
+
+Принципиально пример отличается от всех предыдущих тем, что мы загружаем две трехмерных модели, а для их добавления в сцену создаем групповую ноду root и добавляем в неё наши модельки как дочерние ноды
+
+```cpp
+osg::ref_ptr<osg::Group> root = new osg::Group;
+root->addChild(model1.get());
+root->addChild(model2.get());
+```
+
+![](https://habrastorage.org/webt/gu/yg/gx/guyggxstfydtvlfbosbe-ara3jm.png)
+
+В итоге мы получаем сцену, состоящую из двух моделей - самолета и смешной зеркальной коровы. Кстати, зеркальная корова не будет зеркальной, если не скопировать её текстуру из OpenSceneGraph-Data/Images/reflect.rgb а каталог data/Images нашего проекта.
+
+Класс osg::Group может принимать в качестве дочерних любые типы узлов, в том числе и узлы своего типа. Напротив, класс osg::Geode не содержит вообще каких-либо дочерних узлов - он является оконечным узлом, содержащим в себе геометрию объекта сцены.
