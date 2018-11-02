@@ -23,10 +23,93 @@ lodNode->setRange(1, 0.0f, 500.0f);
 
 Продолжаем мучать цессну и проиллюстрируем описанную технику примером
 
+**main.h**
+```cpp
+#ifndef     MAIN_H
+#define     MAIN_H
+
+#include    <osg/LOD>
+#include    <osgDB/ReadFile>
+#include    <osgUtil/Simplifier>
+#include    <osgViewer/Viewer>
+
+#endif
+```
+
+**main.h**
+```cpp
+#include    "main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc; (void) argv;
+
+    osg::ref_ptr<osg::Node> modelL3 = osgDB::readNodeFile("../data/cessna.osg");
+
+    osg::ref_ptr<osg::Node> modelL2 = dynamic_cast<osg::Node *>(modelL3->clone(osg::CopyOp::DEEP_COPY_ALL));
+    osg::ref_ptr<osg::Node> modelL1 = dynamic_cast<osg::Node *>(modelL3->clone(osg::CopyOp::DEEP_COPY_ALL));
+
+    osgUtil::Simplifier simplifer;
+    simplifer.setSampleRatio(0.5f);
+    modelL2->accept(simplifer);
+
+    simplifer.setSampleRatio(0.1f);
+    modelL1->accept(simplifer);
+
+    osg::ref_ptr<osg::LOD> root = new osg::LOD;
+    root->addChild(modelL1.get(), 200.0f, FLT_MAX);
+    root->addChild(modelL2.get(), 50.0f, 200.0f);
+    root->addChild(modelL3.get(), 0.0f, 50.0f);
+
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+
+    return viewer.run();
+}
+```
+
+Для начала загружаем модель
+
+```cpp
+osg::ref_ptr<osg::Node> modelL3 = osgDB::readNodeFile("../data/cessna.osg");
+```
+
+Теперь необходимо сгенерировать несколько (ограничимся для примера двумя) моделек, с более низким уровнем детализации. Для этого скопируем загруженную ноду дважды, применяя методику так называемого "глубокого" копирования класса, для ноды реализуемого методом clone()
+
+```cpp
+osg::ref_ptr<osg::Node> modelL2 = dynamic_cast<osg::Node *>(modelL3->clone(osg::CopyOp::DEEP_COPY_ALL));
+osg::ref_ptr<osg::Node> modelL1 = dynamic_cast<osg::Node *>(modelL3->clone(osg::CopyOp::DEEP_COPY_ALL));
+```
+
+Теперь редуцируем геометрию этих моделей, используя класс osgUtil::Simplifer. Степень упрощение модели задается методом setSampleRatio() данного класса - чем меньше передаваемый параметр, тем менее детальной будет модель после применения процедуры редукции
+
+```cpp
+osgUtil::Simplifier simplifer;
+simplifer.setSampleRatio(0.5f);
+modelL2->accept(simplifer);
+
+simplifer.setSampleRatio(0.1f);
+modelL1->accept(simplifer);
+```
+
+Когда у нас есть модельки разного уровня детализации мы можем зарядить их в корневую ноду, созданную как умный указатель на osg::LOD. Для каждого уровня детализации задаем дистанцию отображения этого уровня
+
+```cpp
+osg::ref_ptr<osg::LOD> root = new osg::LOD;
+root->addChild(modelL1.get(), 200.0f, FLT_MAX);
+root->addChild(modelL2.get(), 50.0f, 200.0f);
+root->addChild(modelL3.get(), 0.0f, 50.0f);
+```
+
+Под FLT_MAX понимается в некотором роде "бесконечно" большое расстояние до наблюдателя. После запуска вьювера получаем следующую картину
+
+Уровень детализации 3
 ![](https://habrastorage.org/webt/ww/d7/bq/wwd7bqrlttw9sgedue6m5xoxjgu.png)
 
-
+Уровень детализации 2
 ![](https://habrastorage.org/webt/us/ku/h0/uskuh0x_zfchoklahjzoqjeq--c.png)
 
-
+Уровень детализации 1
 ![](https://habrastorage.org/webt/lh/gi/ca/lhgica7l6z4dnl9w8yekiodyxn0.png)
+
+Видно, как при отдалении камеры от объекта снижается детальность отображаемой геометрии. Применяя этот прием можно добится высокой реалистичности сцены при малом расходе ресурсов.
