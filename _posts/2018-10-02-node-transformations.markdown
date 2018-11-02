@@ -93,3 +93,99 @@ osg::Matrixf содержит элементы типа float.
 
 ## Применение класса MatrixTransform
 
+Применим полученные теоретические знания на практике, загрузив две модели самолета в разные точки сцены.
+
+**main.h**
+```cpp
+#ifndef     MAIN_H
+#define     MAIN_H
+
+#include    <osg/MatrixTransform>
+#include    <osgDB/ReadFile>
+#include    <osgViewer/Viewer>
+
+#endif
+```
+
+**main.cpp**
+```cpp
+#include    "main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc; (void) argv;
+
+    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/cessna.osg");
+
+    osg::ref_ptr<osg::MatrixTransform> transform1 = new osg::MatrixTransform;
+    transform1->setMatrix(osg::Matrix::translate(-25.0, 0.0, 0.0));
+    transform1->addChild(model.get());
+
+    osg::ref_ptr<osg::MatrixTransform> transform2 = new osg::MatrixTransform;
+    transform2->setMatrix(osg::Matrix::translate(25.0, 0.0, 0.0));
+    transform2->addChild(model.get());
+
+    osg::ref_ptr<osg::Group> root = new osg::Group;
+    root->addChild(transform1.get());
+    root->addChild(transform2.get());
+
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+
+    return viewer.run();
+}
+```
+
+Пример, на самом деле довольно тривиален. Загружаем модель самолета из файла
+
+```cpp
+osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/cessna.osg");
+```
+
+Создаем ноду трансформации
+
+```cpp
+osg::ref_ptr<osg::MatrixTransform> transform1 = new osg::MatrixTransform;
+```
+
+Устанавливаем в качестве матрицы преобразования перемещение модели по оси X на 25 единиц влево
+```cpp
+transform1->setMatrix(osg::Matrix::translate(-25.0, 0.0, 0.0));
+```
+
+Задаем для ноды трансформации нашу модель в качестве дочернего узла
+```cpp
+transform1->addChild(model.get());
+```
+
+Аналогично поступаем и со второй трансформацией, но в качестве матрица задаем перемещение вправо на 25 единиц
+
+```cpp
+osg::ref_ptr<osg::MatrixTransform> transform2 = new osg::MatrixTransform;
+transform2->setMatrix(osg::Matrix::translate(25.0, 0.0, 0.0));
+transform2->addChild(model.get());
+```
+
+Создаем корневую ноду и в качестве дочених узлов для неё задаем трансформационные ноды transform1 и transform2
+
+```cpp
+osg::ref_ptr<osg::Group> root = new osg::Group;
+root->addChild(transform1.get());
+root->addChild(transform2.get());
+```
+
+Содаем вьювер и в качестве данных сцены передаем ему корневую ноду
+```cpp
+osgViewer::Viewer viewer;
+viewer.setSceneData(root.get());
+```
+
+Запуск программы дает такую картинку
+
+![](https://habrastorage.org/webt/tb/3q/xn/tb3qxnvgrcobwa0w7sz13k2njq8.png)
+
+Структура графа сцены в этом примере такова
+
+![](https://habrastorage.org/webt/pp/ig/xg/ppigxg36m3wph0idp1bwyln57tq.png)
+
+Нас не должен смущать тот факт, что ноды трансформации (Child 1.1 и Child 1.2) ссылаются на один и тот же дочерний объект модели самолета (Child 2). Это штатный механизм OSG, когда один дочерний узел графа сцены модет иметь несколько родительских узлов. Таким образом на не обязательно хранить в памяти два экземпляра модели, чтобы получить в сцене два одинаковых самолета. Такой механиз позволяет очень эффективно распределять память в приложении. Модель не будет удалена из памяти, пока на неё ссылается, как на дочернюю, хотя бы одна нода. 
