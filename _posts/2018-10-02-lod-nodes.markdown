@@ -23,3 +23,10 @@ lodNode->setRange(1, 0.0f, 500.0f);
 
 Продолжаем мучать цессну и проиллюстрируем описанную технику примером
 
+![](https://habrastorage.org/webt/ww/d7/bq/wwd7bqrlttw9sgedue6m5xoxjgu.png)
+
+
+![](https://habrastorage.org/webt/us/ku/h0/uskuh0x_zfchoklahjzoqjeq--c.png)
+
+
+![](https://habrastorage.org/webt/lh/gi/ca/lhgica7l6z4dnl9w8yekiodyxn0.png)
