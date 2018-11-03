@@ -160,5 +160,3 @@ int main(int argc, char *argv[])
 
 ![](https://habrastorage.org/webt/zx/cc/j4/zxccj4cjwh5a0ejfpl6mjudq8zi.png)
 
-
-
