@@ -92,6 +92,71 @@ int main(int argc, char *argv[])
 }
 ```
 
+Создание отдельного вида поместим в функцию, принимающую в качестве параметров положение и размеры окна, а также сцену в виде указателя на её корневой узел
 
+```cpp
+osgViewer::View *createView(int x, int y, int w, int h,
+                            osg::Node *scene)
+{
+    osg::ref_ptr<osgViewer::View> view = new osgViewer::View;
+    view->setSceneData(scene);
+    view->setUpViewInWindow(x, y, w, h);
+
+    return view.release();
+}
+```
+
+Здесь мы создаем вид, управляемый умным указателем на объект osgViewer::View
+
+```cpp
+osg::ref_ptr<osgViewer::View> view = new osgViewer::View;
+```
+
+задаем данные отображаемой сцены и оконный режим отображения в окне с заданным положением и размерами
+
+```cpp
+view->setSceneData(scene);
+view->setUpViewInWindow(x, y, w, h);
+```
+
+Вид возвращаем из функции по правилам возврата умных указателей
+
+```cpp
+return view.release();
+```
+
+Теперь в основной программе загружаем три разных модели
+
+```cpp
+osgViewer::View *view1 = createView(50, 50, 320, 240, model1);
+osgViewer::View *view2 = createView(380, 50, 320, 240, model2);
+osgViewer::View *view3 = createView(185, 330, 320, 240, model3);
+```
+
+создаем три разных вида
+
+```cpp
+osgViewer::View *view1 = createView(50, 50, 320, 240, model1);
+osgViewer::View *view2 = createView(380, 50, 320, 240, model2);
+osgViewer::View *view3 = createView(185, 330, 320, 240, model3);
+```
+
+создаем композитный вьювер и добавляем в него созданные ранее виды
+
+```cpp
+osgViewer::CompositeViewer viewer;
+viewer.addView(view1);
+viewer.addView(view2);
+viewer.addView(view3);
+```
+
+и запускаем рендеринг абсолютно аналогично тому, как мы это делали в случае с одной сценой
+
+```cpp
+return viewer.run();
+```
+
+Всё! При запуске программы мы получим три разный окна. Содержимым каждого окна можно управлять независимо. Любое из окон можно закрыть стандартным способом, а из приложения целиком выйти по нажатию Esc.
 
 ![](https://habrastorage.org/webt/dh/na/kl/dhnaklox5z-apbaynehnea_okss.png)
+
