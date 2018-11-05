@@ -61,4 +61,66 @@ viewer.setRunFrameScheme( osgViewer::Viewer::ON_DEMAND );
 
 ## Модифицируем цикл симуляции
 
+По предыдущим примерам мы хорошо знакомы с методом run(). Однако, возникает вопрос, а можно ли вмешаться в этот цикл, например чтобы добавить некоторые действия как до, так и после отрисовки кадра? Конечно можно, что мы и попытаемся сделать в следующем примере. При этом следует помнить о том, что на модифицированный цикл никак не влияют настройки обновления кадра по требованию а так же ограничение частоты кадров - чтобы использовать эти возможности следует использовать стандартный run().
 
+**main.h**
+```cpp
+#ifndef		MAIN_H
+#define		MAIN_H
+
+#include    <osgDB/ReadFile>
+#include    <osgGA/TrackballManipulator>
+#include    <osgViewer/Viewer>
+#include    <iostream>
+
+#endif
+```
+
+**main.cpp**
+```cpp
+#include	"main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc; (void) argv;
+
+    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/lz.osg");
+
+    osgViewer::Viewer viewer;
+
+    viewer.setSceneData(model.get());
+    viewer.setCameraManipulator(new osgGA::TrackballManipulator);
+
+    while (!viewer.done())
+    {
+        viewer.frame();
+        std::cout << "Frame number: " << viewer.getFrameStamp()->getFrameNumber() << std::endl;
+    }
+    
+    return 0;
+}
+```
+
+![](https://habrastorage.org/webt/sc/z_/ln/scz_ln1sffn_q2i90y5s6lhgqek.png)
+
+```
+Frame number: 196
+Frame number: 197
+Frame number: 198
+Frame number: 199
+Frame number: 200
+Frame number: 201
+Frame number: 202
+Frame number: 203
+Frame number: 204
+Frame number: 205
+Frame number: 206
+Frame number: 207
+Frame number: 208
+Frame number: 209
+Frame number: 210
+Frame number: 211
+Frame number: 212
+Frame number: 213
+Frame number: 214
+```
