@@ -107,3 +107,98 @@ camera3->setRenderOrder(osg::Camera::POST_RENDER);
 Если задан порядок POST_RENDER, то камера может затереть текущий буфер кадра. Мы можем избежать этого, задав соответсвующие параметры для setClearMask(). Типичным примером может служить реализация HUD-дисплея поверх основной сцены.
 
 ## Создание HUD-дисплея
+
+HUD-дисплей - прием отображения данных, когда эти данные всегда отображаются в порте вывода. Они спользуется для вывода в кадр 3D-сцены важной двухмерной информации типа статистической информации в игре. Попробуем создать такой дисплей.
+
+**main.h**
+```cpp
+#ifndef		MAIN_H
+#define		MAIN_H
+
+#include    <osg/Camera>
+#include    <osgDB/ReadFile>
+#include    <osgViewer/Viewer>
+
+#endif
+```
+
+**main.cpp**
+```cpp
+#include	"main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc; (void) argv;
+
+    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/lz.osg");
+    osg::ref_ptr<osg::Node> hud_model = osgDB::readNodeFile("../data/glider.osg");
+
+    osg::ref_ptr<osg::Camera> camera = new osg::Camera;
+    camera->setClearMask(GL_DEPTH_BUFFER_BIT);
+    camera->setRenderOrder(osg::Camera::POST_RENDER);
+
+    camera->setReferenceFrame(osg::Camera::ABSOLUTE_RF);
+    camera->setViewMatrixAsLookAt(osg::Vec3(0.0f, -5.0f, 5.0f),
+                                  osg::Vec3(),
+                                  osg::Vec3(0.0f, 1.0f, 1.0f));
+
+    camera->addChild(hud_model.get());
+
+    osg::ref_ptr<osg::Group> root = new osg::Group;
+    root->addChild(model.get());
+    root->addChild(camera.get());
+
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+    
+    return viewer.run();
+}
+```
+
+Загружаем две модели с диска - тестовый ландшафт lz.osg и модель дельтаплана glider.osg, которая будет рисваться поверх всей сцены HUD-камерой
+
+```cpp
+osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/lz.osg");
+osg::ref_ptr<osg::Node> hud_model = osgDB::readNodeFile("../data/glider.osg");
+```
+
+Создаем HUD-камеру. Эта камера должна рендерить изображение поверх основной сцены. Она перекрывает все ранее отрисованные данные, независимо от их расположения и глубины. Мы используем маску GL_DEPTH_BUFFER_BIT для очистки буфера глубины. GL_COLOR_BUFFER_BIT мы не устанавливаем, чтобы гарантировать сохрание данных буфера цвета
+
+```cpp
+osg::ref_ptr<osg::Camera> camera = new osg::Camera;
+camera->setClearMask(GL_DEPTH_BUFFER_BIT);
+camera->setRenderOrder(osg::Camera::POST_RENDER);
+```
+
+Камера HUD не должна воздейсвовать на вьювер и ноды основной сцены, поэтому её нужно настроить на асолютную систему координат и установить фиксированную матрицу вида. Дельтаплан добавляется в качестве дочернего узла камеры и используется в качестве отображаемого объекта для неё
+
+```cpp
+camera->setReferenceFrame(osg::Camera::ABSOLUTE_RF);
+camera->setViewMatrixAsLookAt(osg::Vec3(0.0f, -5.0f, 5.0f),
+                              osg::Vec3(),
+                              osg::Vec3(0.0f, 1.0f, 1.0f));
+
+camera->addChild(hud_model.get());
+```
+
+Создаем корневую ноду и добавляем в неё в качестве дочерней камеру HUD и основную сцену в виде ландшафта.
+
+```cpp
+osg::ref_ptr<osg::Group> root = new osg::Group;
+root->addChild(model.get());
+root->addChild(camera.get());
+```
+
+Как обычно запускаем сцену
+
+```cpp
+osgViewer::Viewer viewer;
+viewer.setSceneData(root.get());
+
+return viewer.run();
+```
+
+При запуске программы манипуляции камеры влияют на модель ландшафта, однако дельтаплан не меняет свое положение вне зависимости от пользовательского ввода
+
+![](https://habrastorage.org/webt/bi/bg/3j/bibg3jnecmnmuldvp7afdwt9rca.png)
+
