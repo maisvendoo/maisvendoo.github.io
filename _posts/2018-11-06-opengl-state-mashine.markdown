@@ -52,3 +52,62 @@ stateset->setTextureAttributeAndModes(0, textattr, osg::StateAttribute::ON);
 
 ## Задание режима отображения полигонов для узлов сцены
 
+Проилюстрируем вышеописанную теорию практическим примером - изменением режима растеризации полигонов OpenGL, используя класс osg::PolygonMode, наследующий от osg::StateAttribute. Этот класс инкапсулирует функцию glPolygonMode() и предоставляет интерфейс для установки режима отображения полигонов для конкретного узла сцены.
+
+**main.h**
+```cpp
+#ifndef		MAIN_H
+#define		MAIN_H
+
+#include    <osg/PolygonMode>
+#include    <osg/MatrixTransform>
+#include    <osgDB/ReadFile>
+#include    <osgViewer/Viewer>
+
+#endif
+```
+
+**main.cpp**
+```cpp
+#include	"main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc; (void) argv;
+
+    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/cessna.osg");
+
+    osg::ref_ptr<osg::MatrixTransform> transform1 = new osg::MatrixTransform;
+    transform1->setMatrix(osg::Matrix::translate(-25.0f, 0.0f, 0.0f));
+    transform1->addChild(model.get());
+
+    osg::ref_ptr<osg::MatrixTransform> transform2 = new osg::MatrixTransform;
+    transform2->setMatrix(osg::Matrix::translate(25.0f, 0.0f, 0.0f));
+    transform2->addChild(model.get());
+
+    osg::ref_ptr<osg::PolygonMode> pm = new osg::PolygonMode;
+    pm->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
+    transform1->getOrCreateStateSet()->setAttribute(pm.get());
+
+    osg::ref_ptr<osg::Group> root = new osg::Group;
+    root->addChild(transform1.get());
+    root->addChild(transform2.get());
+
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+    
+    return viewer.run();
+}
+```
+
+Здесь мы загрзуим модель нашей любимой цессны и применяя к ней трансформации получим два экземпляра модели. К одному из них, тому что слева, применим аттрибут, задающий режим каркасного отображения полигонов
+
+```cpp
+osg::ref_ptr<osg::PolygonMode> pm = new osg::PolygonMode;
+pm->setMode(osg::PolygonMode::FRONT_AND_BACK, osg::PolygonMode::LINE);
+transform1->getOrCreateStateSet()->setAttribute(pm.get());
+```
+
+![](https://habrastorage.org/webt/pg/v5/ew/pgv5ewaulc_tfjztw5h8gyyap1i.png)
+
+Если обратится к спецификации OpenGL, то можно легко представить себе какие параметры отображения полигонов будут доступны нам при использовании setMode() в данном конкретном случае. Первый параметр может принимать значения osg::PolygonMode::FRONT, BACK и FRONT_AND_BACK, соотвествующие перечислителям OpenGL GL_FRONT, GL_BACK, GL_FRONT_AND_BACK. Второй параметр модет принимать значения osg::PolygonMode::POINT, LINE и FILL, которые соответствуют GL_POINT, GL_LINE и GL_FILL. Никаких других трюков, как это часто бывает при разработке на чистом OpenGL тут применять не нужно - OSG берет на себя большую часть работы. Режим отображения полигонов не имеет связанного режима и не требует вызова пары glEnable()/glDisable(). Метод setAttributeAndModes() будет прекрасно работать и в данном случае, но значение его третьего параметра будет при этом бесполезным.
