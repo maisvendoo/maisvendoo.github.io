@@ -81,5 +81,47 @@ int main(int argc, char *argv[])
 $ osgviewer glider.osg
 ```
 
-В примере мы пытаемся поменять режим освещения для узлов transform1 и transform2, отключив напрочь освещение. При этом мы включаем режим освещения для корневого узла, и, используя флаг OVERRIDE для всех его дочерних узлов, чтобы они наследовали состояние корневого узла. Однако trnsform2 использует флаг PROTECTED для предотварщения вилияния настроек корневого узла. В итоге, несмотря на то, что мы выключаем освещение у узла transform1 левый дельтаплан по-прежнему освещен, так как настройки корня сцены перекрыли нашу попытку выключить освещение для него. Правый дельтаплан отображается без освещения (он выглядит ярче только потому, что залит простым цветом без просчета освещенности), так как transform2 защищен от наследования аттрибутов корневого узла.
+В примере мы пытаемся поменять режим освещения для узлов transform1 и transform2, отключив напрочь освещение. 
 
+```cpp
+transform1->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+transform2->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::PROTECTED);
+```
+
+При этом мы включаем режим освещения для корневого узла, и, используя флаг OVERRIDE для всех его дочерних узлов, чтобы они наследовали состояние корневого узла. Однако trnsform2 использует флаг PROTECTED для предотварщения вилияния настроек корневого узла. 
+
+```cpp
+transform2->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::PROTECTED);
+```
+
+В итоге, несмотря на то, что мы выключаем освещение у узла transform1 левый дельтаплан по-прежнему освещен, так как настройки корня сцены перекрыли нашу попытку выключить освещение для него. Правый дельтаплан отображается без освещения (он выглядит ярче только потому, что залит простым цветом без просчета освещенности), так как transform2 защищен от наследования аттрибутов корневого узла.
+
+## Перечень атрибутов OpenGL, поддерживаемых в OpenSceneGraph
+
+|----------------|--------------------|----------------------------|------------------------------------------------|
+|ID типа атрибута|Имя класса          |Ассоциированный режим       |Эквивалентная функция OpenGL                    |
+|----------------|--------------------|----------------------------|------------------------------------------------|
+|ALPHEFUNC       |osg::AlphaFunc      |GL_ALPHA_TEST               |glAlphaFunc()                                   |
+|BLENDFUNC       |osg::BlendFunc      |GL_BLEND                    |glBlendFunc() и glBlendFuncSeparate()           |
+|CLIPPLANE       |osg::ClipPlane      |GL_CLIP_PLANEi (i от 1 до 5)|glClipPlane()                                   |
+|COLORMASK       |osg::ColorMask      |--                          |glColorMask()                                   |
+|CULLFACE        |osg::CullFace       |GL_CULLFACE                 |glCullFace()                                    |
+|DEPTH           |osg::Depth          |GL_DEPTH_TEST               |glDepthFunc(), glDepthRange() и glDepthMask()   |
+|FOG             |osg::Fog            |GL_FOG                      |glFog()                                         |
+|FRONTFACE       |osg::FrontFace      |--                          |glFrontFace()                                   |
+|LIGHT           |osg::Light          |GL_LIGHTi (i от 1 до 7)     |glLight()                                       |
+|LIGHTMODEL      |osg::LightModel     |--                          |glLightModel()                                  |
+|LINESTRIPPLE    |osg::LineStripple   |GL_LINE_STRIPPLE            |glLineStripple()                                |
+|LINEWIDTH       |osg::LineWidth      |--                          |glLineWidht()                                   |
+|LOGICOP         |osg::LogicOp        |GL_COLOR_LOGIC_OP           |glLogicOp()                                     |
+|MATERIAL        |osg::Material       |--                          |glMaterial() и glColorMaterial()                |
+|POINT           |osg::Point          |GL_POINT_SMOOTH             |glPointParameter()                              |
+|POINTSPRITE     |osg::PointSprite    |GL_POINT_SPRITE_ARB         |Функции для работы со спрайтами OpenGL          |
+|POLYGONMODE     |osg::PolygonMode    |--                          |glPolygonMode()                                 |
+|POLYGONOFFSET   |osg::PolygonOffset  |GL_POLYGON_OFFSET_POINT     |glPolygonOffset()                               |
+|POLYGONSTRIPPLE |osg::PolygonStripple|GL_POLYGON_STRIPPLE         |glPolygonStripple()                             |
+|SCISSOR         |osg::Scissor        |GL_SCISSOR_TEST             |glScissor()                                     |
+|SHADEMODEL      |osg::ShadeModel     |--                          |glShadeModel()                                  |
+|STENCIL         |osg::Stencil        |GL_STENCIL_TEST             |glStencilFunc(), glStencilOp() и glStencilMask()|
+|TEXENV          |osg::TexEnv         |--                          |glTexEnv()                                      |
+|TEXGEN          |osg::TexGen         |GL_TEXTURE_GEN_S            |glTexGen()                                      |
