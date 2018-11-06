@@ -26,3 +26,60 @@ stateset->StateAttributeAndModes(attr, osg::StateAttribute::ON | osg::StateAttri
 Имеется и третий флаг, osg::StateAttribute::INHERIT, который используется для того, чтобы отметить, что данный атрибут должен наследоваться из набора состояний родительского узла.
 
 Приведем короткий пример использвание флагов OVERRIDE и PROTECTED. Корневой узел будет установлен в OVERRIDE, чтобы заставить все дочерние узлы наследовать его атрибуты и режимы. При этом дочерние узлы будут пытаться изменить свое состояние с помощью или без помощи флага PROTECTED, что будет приводить к различным результатам.
+
+**main.h**
+```cpp
+#ifndef		MAIN_H
+#define		MAIN_H
+
+#include    <osg/PolygonMode>
+#include    <osg/MatrixTransform>
+#include    <osgDB/ReadFile>
+#include    <osgViewer/Viewer>
+
+#endif
+```
+
+**main.cpp**
+```cpp
+#include	"main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc; (void) argv;
+
+    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/glider.osg");
+
+    osg::ref_ptr<osg::MatrixTransform> transform1 = new osg::MatrixTransform;
+    transform1->setMatrix(osg::Matrix::translate(-0.5f, 0.0f, 0.0f));
+    transform1->addChild(model.get());
+
+    osg::ref_ptr<osg::MatrixTransform> transform2 = new osg::MatrixTransform;
+    transform2->setMatrix(osg::Matrix::translate(0.5f, 0.0f, 0.0f));
+    transform2->addChild(model.get());
+
+    osg::ref_ptr<osg::Group> root = new osg::Group;
+    root->addChild(transform1.get());
+    root->addChild(transform2.get());
+
+    transform1->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+    transform2->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::PROTECTED);
+    root->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+    
+    return viewer.run();
+}
+```
+
+![](https://habrastorage.org/webt/lf/8h/u4/lf8hu4n3ii1bor6lgsktbischd0.png)
+
+Чтобы понять, что вообще происходит, необходимо посмотреть как выглядит нормально освещенный дельтаплан, загрузив его  штатный просмотрищик OSG osgviewer
+
+```bash
+$ osgviewer glider.osg
+```
+
+В примере мы пытаемся поменять режим освещения для узлов transform1 и transform2, отключив напрочь освещение. При этом мы включаем режим освещения для корневого узла, и, используя флаг OVERRIDE для всех его дочерних узлов, чтобы они наследовали состояние корневого узла. Однако trnsform2 использует флаг PROTECTED для предотварщения вилияния настроек корневого узла. В итоге, несмотря на то, что мы выключаем освещение у узла transform1 левый дельтаплан по-прежнему освещен, так как настройки корня сцены перекрыли нашу попытку выключить освещение для него. Правый дельтаплан отображается без освещения (он выглядит ярче только потому, что залит простым цветом без просчета освещенности), так как transform2 защищен от наследования аттрибутов корневого узла.
+
