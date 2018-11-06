@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Введение в OpenSceneGraph: Наследование состояний рендеринга"
+title:  "Введение в OpenSceneGraph: Наследование состояний рендеринга. Применение атрибутов и режимов"
 date:   2018-11-06 10:05:00 +0300
 categories: jekyll update
 ---
@@ -141,3 +141,68 @@ osg::StateAttribute::GLModeValue value = stateset->getMode(GL_LIGHTING);
 ```
 
 Здесь перечислитель GL_LIGHTING используется для включения/отключения освещения на всей сцене.
+
+## Применение тумана к модели в сцене
+
+Приведем в пример эффект тумана, как идеальный способ показать приемы работы с различными атрибутами и режимами рендеринга. OpenGL использует одно линейное и два экспоненциальных уравнения, описывающих модель тумана, поддерживаемые классом osg::Fog.
+
+**main.h**
+```cpp
+#ifndef		MAIN_H
+#define		MAIN_H
+
+#include    <osg/Fog>
+#include    <osgDB/ReadFile>
+#include    <osgViewer/Viewer>
+
+#endif
+```
+
+**main.cpp**
+```cpp
+#include	"main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc; (void) argv;
+
+    osg::ref_ptr<osg::Fog> fog = new osg::Fog;
+    fog->setMode(osg::Fog::LINEAR);
+    fog->setStart(500.0f);
+    fog->setEnd(2500.0f);
+    fog->setColor(osg::Vec4(1.0f, 1.0f, 0.0f, 1.0f));
+
+    osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/lz.osg");
+    model->getOrCreateStateSet()->setAttributeAndModes(fog.get());
+    
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(model.get());
+
+    return viewer.run();
+}
+```
+
+Первым делом создаем атрибут тумана. Используем линейную модель, настраиваем диапазон отображения тумана по дальности до модели
+
+```cpp
+osg::ref_ptr<osg::Fog> fog = new osg::Fog;
+fog->setMode(osg::Fog::LINEAR);
+fog->setStart(500.0f);
+fog->setEnd(2500.0f);
+fog->setColor(osg::Vec4(1.0f, 1.0f, 0.0f, 1.0f));
+```
+
+Загружаем образец ландшафта lz.osg и применяем к нему данный атрибут
+
+```cpp
+osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/lz.osg");
+model->getOrCreateStateSet()->setAttributeAndModes(fog.get());
+```
+
+В окне вьювера видим затуманенный ландшафт, и можем посмотреть как изменяется густота тумана в зависимости от расстояния до модели
+
+![](https://habrastorage.org/webt/gq/8f/fu/gq8ffuswpsbsl1-xxqzprwvprle.png)
+
+![](https://habrastorage.org/webt/3z/st/f6/3zstf6mlxlvenapqhvj3zsxyh2i.png)
+
+![](https://habrastorage.org/webt/k-/mc/cj/k-mccjrssmakzwwrht-b5azkzg4.png)
