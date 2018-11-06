@@ -98,6 +98,8 @@ transform2->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF
 
 ## Перечень атрибутов OpenGL, поддерживаемых в OpenSceneGraph
 
+OSG поддерживает почти все атрибуты и режимы рендеринга, поддерживаемые OpenGL, через классы, производные от osg::StateAttribute. В таблице представлены все параметры машины состояния OpenGL, доступные из движка.
+
 |----------------|--------------------|----------------------------|------------------------------------------------|
 |ID типа атрибута|Имя класса          |Ассоциированный режим       |Эквивалентная функция OpenGL                    |
 |----------------|--------------------|----------------------------|------------------------------------------------|
@@ -125,3 +127,17 @@ transform2->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF
 |STENCIL         |osg::Stencil        |GL_STENCIL_TEST             |glStencilFunc(), glStencilOp() и glStencilMask()|
 |TEXENV          |osg::TexEnv         |--                          |glTexEnv()                                      |
 |TEXGEN          |osg::TexGen         |GL_TEXTURE_GEN_S            |glTexGen()                                      |
+
+Колонка ID типа атрибута указывает на специфический идентификатор OSG, которым обозначается данный атрибут в перечислителях класса osg::StateAttribute. Он может быть использован в методе getAttribute, для получения значения конкретного атрибута
+
+```cpp
+osg::PolygonMode *pm = dynamic_cast<osg::PolygonMode *>(stateset->getAttribute(osg::StateAttribute::POLYGONMODE));
+```
+
+Валидный указатель указывает на то, что атрибут был установлен ранее. В противном случае метод вренет NULL. Получить значение текущего режима можно также, использовав вызов
+
+```cpp
+osg::StateAttribute::GLModeValue value = stateset->getMode(GL_LIGHTING);
+```
+
+Здесь перечислитель GL_LIGHTING используется для включения/отключения освещения на всей сцене.
