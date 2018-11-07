@@ -90,6 +90,8 @@ texture->setUnRefImageDataAfterApply( true );
 
 ## Загружаем и применяем 2D-текстуру
 
+Чаще всего используется техника 2D-текстурирования - накладывание двухмерного изображения (или изображений) на грани трехмерной поверхности. Рассмотрим простейший пример наложения одной текстуры на четырехугольный полигон
+
 **main.h**
 ```cpp
 #ifndef		MAIN_H
@@ -147,5 +149,63 @@ int main(int argc, char *argv[])
     return viewer.run();
 }
 ```
+
+Создаем массив вершин и нормалей к грани
+
+```cpp
+osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array;
+vertices->push_back( osg::Vec3(-0.5f, 0.0f, -0.5f) );
+vertices->push_back( osg::Vec3( 0.5f, 0.0f, -0.5f) );
+vertices->push_back( osg::Vec3( 0.5f, 0.0f,  0.5f) );
+vertices->push_back( osg::Vec3(-0.5f, 0.0f,  0.5f) );
+
+osg::ref_ptr<osg::Vec3Array> normals = new osg::Vec3Array;
+normals->push_back( osg::Vec3(0.0f, -1.0f, 0.0f) );
+```
+
+Создаем массив текстурных координат
+
+```cpp
+osg::ref_ptr<osg::Vec2Array> texcoords = new osg::Vec2Array;
+texcoords->push_back( osg::Vec2(0.0f, 0.0f) );
+texcoords->push_back( osg::Vec2(0.0f, 1.0f) );
+texcoords->push_back( osg::Vec2(1.0f, 1.0f) );
+texcoords->push_back( osg::Vec2(1.0f, 0.0f) );
+```
+
+Смысл заключается в том, что каждой вершине трехмерной модели соотвествует точка на двухмерной текстуре, причем координаты точки на текстуре являются относительными - они нормируются к фактической ширине и высоте изображения. Мы хотим натянуть на квадрат всю загружаемую картинку, соотвественно углам квадрата будут соотвествовать точки текстуры (0, 0), (0, 1), (1, 1) и (1, 0). Порядок следования вершин в массиве вершин, должен совпадать с порядком текстурных вершин.
+
+Далее создаем квадрат, присваивая геометрии массив вершин и массив нормалей
+
+```cpp
+osg::ref_ptr<osg::Geometry> quad = new osg::Geometry;
+quad->setVertexArray(vertices.get());
+quad->setNormalArray(normals.get());
+quad->setNormalBinding(osg::Geometry::BIND_OVERALL);
+quad->setTexCoordArray(0, texcoords.get());
+quad->addPrimitiveSet( new osg::DrawArrays(GL_QUADS, 0, 4) );
+```
+
+Создаем объект текстуры и загружаем изображение, используемое для нее
+
+```cpp
+osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
+osg::ref_ptr<osg::Image> image = osgDB::readImageFile("../data/Images/lz.rgb");
+texture->setImage(image.get());
+```
+
+Создаем корневой узел сцены и помещаем туда созданную нами геометрию
+
+```cpp
+osg::ref_ptr<osg::Geode> root = new osg::Geode;
+root->addDrawable(quad.get());
+```
+
+и, наконец, применяем атрибут текстуры к узлу, в который помещена геометрия
+
+```cpp
+root->getOrCreateStateSet()->setTextureAttributeAndModes(0, texture.get());
+```
+
 
 ![](https://habrastorage.org/webt/wm/2a/fy/wm2afywfx6dnkhwaagvceqkycd8.png)
