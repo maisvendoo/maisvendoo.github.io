@@ -207,5 +207,7 @@ root->addDrawable(quad.get());
 root->getOrCreateStateSet()->setTextureAttributeAndModes(0, texture.get());
 ```
 
-
 ![](https://habrastorage.org/webt/wm/2a/fy/wm2afywfx6dnkhwaagvceqkycd8.png)
+
+Класс osg::Texture2D определяет, являются ли размеры изображения текстуры кратными степеням двойкм (например 64х64 или 256х512) автоматически масштабируя неподходящие по размеру изображения, фактически применяя функцию gluScaleImage() OpenGL. Существует метод setResizeNonPowerOfTwoHint(), определяющий, нужно или нет изменять размер изображения. Некоторые видеокарты требуют кратность размера изображения степени двойки, в то время как класс osg::Texture2D поддерживает работу с произвольмым размером текстуры.
+
