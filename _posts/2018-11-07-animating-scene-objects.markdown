@@ -31,4 +31,6 @@ categories: jekyll update
 |Обратный вызов для камеры перед отрисовкой|osg::Camera::DarwCallback    |operator()       |osg::Camera::PreDrawCallback()          |
 |Обратный вызов для камеры после отрисовки |osg::Camera::DarwCallback    |operator()       |osg::Camera::PostDrawCallback()         |
 
+## Переключение osg::Switch при обновлении дерева сцены
+
 
