@@ -42,3 +42,7 @@ camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER);
 
 ## Пример реализации рендеринга в текстуру
 
+
+
+![](https://habrastorage.org/webt/se/g1/jr/seg1jrflbtmzfkb5cbtwys1hleg.gif)
+
