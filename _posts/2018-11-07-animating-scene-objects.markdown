@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Введение в OpenSceneGraph: Анимация объектов сцены"
-date:   2018-11-07 15:20:00 +0300
+date:   2018-11-08 16:45:00 +0300
 categories: jekyll update
 ---
 
