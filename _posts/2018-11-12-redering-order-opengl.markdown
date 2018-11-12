@@ -26,5 +26,87 @@ node->getOrCreateStateSet()->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
 ```
 
 ## Пример реализации полупрозрачных объектов
-
  
+Попробуем проиллюстрировать всё вышеописанное теоретическое введение конкретным примером реализации полупрозрачного объекта.
+
+
+**main.h**
+```cpp
+#ifndef		MAIN_H
+#define		MAIN_H
+
+#include    <osg/BlendFunc>
+#include    <osg/Texture2D>
+#include    <osg/Geometry>
+#include    <osgDB/ReadFile>
+#include    <osgViewer/Viewer>
+
+#endif
+```
+
+**main.cpp**
+```cpp
+#include	"main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc; (void) argv;
+
+    osg::ref_ptr<osg::Vec3Array> vertices = new osg::Vec3Array;
+    vertices->push_back( osg::Vec3(-0.5f, 0.0f, -0.5f) );
+    vertices->push_back( osg::Vec3( 0.5f, 0.0f, -0.5f) );
+    vertices->push_back( osg::Vec3( 0.5f, 0.0f,  0.5f) );
+    vertices->push_back( osg::Vec3(-0.5f, 0.0f,  0.5f) );
+
+    osg::ref_ptr<osg::Vec3Array> normals = new osg::Vec3Array;
+    normals->push_back( osg::Vec3(0.0f, -1.0f, 0.0f) );
+
+    osg::ref_ptr<osg::Vec2Array> texcoords = new osg::Vec2Array;
+    texcoords->push_back( osg::Vec2(0.0f, 0.0f) );
+    texcoords->push_back( osg::Vec2(0.0f, 1.0f) );
+    texcoords->push_back( osg::Vec2(1.0f, 1.0f) );
+    texcoords->push_back( osg::Vec2(1.0f, 0.0f) );
+
+    osg::ref_ptr<osg::Vec4Array> colors = new osg::Vec4Array;
+    colors->push_back( osg::Vec4(1.0f, 1.0f, 1.0f, 0.5f) );
+
+    osg::ref_ptr<osg::Geometry> quad = new osg::Geometry;
+    quad->setVertexArray(vertices.get());
+    quad->setNormalArray(normals.get());
+    quad->setNormalBinding(osg::Geometry::BIND_OVERALL);
+    quad->setColorArray(colors.get());
+    quad->setColorBinding(osg::Geometry::BIND_OVERALL);
+    quad->setTexCoordArray(0, texcoords.get());
+    quad->addPrimitiveSet(new osg::DrawArrays(GL_QUADS, 0, 4));
+
+    osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+    geode->addDrawable(quad.get());
+
+    osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
+    osg::ref_ptr<osg::Image> image = osgDB::readImageFile("../data/Images/lz.rgb");
+    texture->setImage(image.get());
+
+    osg::ref_ptr<osg::BlendFunc> blendFunc = new osg::BlendFunc;
+    blendFunc->setFunction(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    osg::StateSet *stateset = geode->getOrCreateStateSet();
+    stateset->setTextureAttributeAndModes(0, texture.get());
+    stateset->setAttributeAndModes(blendFunc);    
+
+    osg::ref_ptr<osg::Group> root = new osg::Group;
+    root->addChild(geode.get());
+    root->addChild(osgDB::readNodeFile("../data/glider.osg"));
+
+    osgViewer::Viewer viewer;
+    viewer.setSceneData(root.get());
+    
+    return viewer.run();
+}
+```
+
+
+![](https://habrastorage.org/webt/_m/mz/kz/_mmzkzrmxvmfll-qi0xli6wq_5g.png)
+
+
+
+![](https://habrastorage.org/webt/py/bl/ta/pybltaqa6xkligouodxgunwoyvs.png)
