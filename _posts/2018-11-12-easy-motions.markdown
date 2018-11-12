@@ -123,4 +123,122 @@ int main(int argc, char *argv[])
 }
 ```
 
-![](https://habrastorage.org/webt/ax/01/rl/ax01rlkfna5cfkvzqk3qfao_lmq.gif)
+Начинаем с создания траектории самолета, вынося этот код в отдельную функцию
+
+```cpp
+osg::AnimationPath *createAnimationPath(double radius, double time)
+{
+    osg::ref_ptr<osg::AnimationPath> path = new osg::AnimationPath;
+    path->setLoopMode(osg::AnimationPath::LOOP);
+
+    unsigned int numSamples = 32;
+    double delta_yaw = 2.0 * osg::PI / (static_cast<double>(numSamples) - 1.0);
+    double delta_time = time / static_cast<double>(numSamples);
+
+    for (unsigned int i = 0; i < numSamples; ++i)
+    {
+        double yaw = delta_yaw * i;
+        osg::Vec3d pos(radius * sin(yaw), radius * cos(yaw), 0.0);
+        osg::Quat rot(-yaw, osg::Z_AXIS);
+
+        path->insert(delta_time * i, osg::AnimationPath::ControlPoint(pos, rot));
+    }
+
+    return path.release();
+}
+```
+
+В качестве параметров функция принимает радиус окружности, по которой движется самолет и время, за которое он совершит один оборот. Внутри функции создаем объект траектории и включаем режим циклического повторения анимации
+
+```cpp
+osg::ref_ptr<osg::AnimationPath> path = new osg::AnimationPath;
+path->setLoopMode(osg::AnimationPath::LOOP);
+```
+
+Следующий код
+
+```cpp
+unsigned int numSamples = 32;
+double delta_yaw = 2.0 * osg::PI / (static_cast<double>(numSamples) - 1.0);
+double delta_time = time / static_cast<double>(numSamples);
+```
+
+вычмсляет параметры аппроксимации траектории. Мы разбиваем всю траекторию на numSamples прмолинейных участков, и вычисляем изменение угла поворота самолета вокруг вертикальной оси (рыскания) delta_yaw и изменение времени delta_time при переходет от участка к учаcтку. Теперь создаем необходимые контрольные точки
+
+```cpp
+for (unsigned int i = 0; i < numSamples; ++i)
+{
+    double yaw = delta_yaw * i;
+    osg::Vec3d pos(radius * sin(yaw), radius * cos(yaw), 0.0);
+    osg::Quat rot(-yaw, osg::Z_AXIS);
+
+    path->insert(delta_time * i, osg::AnimationPath::ControlPoint(pos, rot));
+}
+```
+
+В цикле перебираются все учатки траектории от первого до последнего. Каждая контрольная точка характеризуется углом рыскания
+
+```cpp
+double yaw = delta_yaw * i;
+```
+
+положением центра масс самолета в пространстве
+
+```cpp
+osg::Vec3d pos(radius * sin(yaw), radius * cos(yaw), 0.0);
+```
+
+Поророт самолета на требуемый угол рыскания (относительно вертикальной оси) задаем кватернионом
+
+```cpp
+osg::Quat rot(-yaw, osg::Z_AXIS);
+```
+
+а затем добавляем расчитанные параметры в список контрольных точек траектории
+
+```cpp
+path->insert(delta_time * i, osg::AnimationPath::ControlPoint(pos, rot));
+```
+
+В основной программа обращаем внимание на нюанс в указании имени файла модели самолета при загрузке
+
+```cpp
+osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/cessna.osg.0,0,90.rot");
+```
+
+-- к имени файла добавился некий суффикс ".0,0,90.rot". Механизм загрузки геометрии из файла, используемый в OSG позволяет таким образом указать начальное положение и оринтацию модели после загрузки. В данном случае мы хотим, чтобы загрузившись, модель была повернута на 90 градусов вокруг оси Z.
+
+Далее создается корневой узел, являющийся узлом трансформации, и объект модели добавляется к нему в качестве дочернего узла
+
+```cpp
+osg::ref_ptr<osg::MatrixTransform> root = new osg::MatrixTransform;
+root->addChild(model.get());
+```
+
+Теперь создаем обратный вызов анимации траектории, добавляя в него путь, создаваемый функцией createAnimationPath()
+
+```cpp
+osg::ref_ptr<osg::AnimationPathCallback> apcb = new osg::AnimationPathCallback;
+apcb->setAnimationPath(createAnimationPath(50.0, 6.0));
+```
+
+Прикрепляем этот коллбэк к узлу трансформации
+
+```cpp
+root->setUpdateCallback(apcb.get());
+```
+
+Инициализация и запуск вьювера производится как обычно
+
+```cpp
+osgViewer::Viewer viewer;
+viewer.setSceneData(root.get());
+
+return viewer.run();
+```
+
+Получаем анимацию движения самолета
+
+![](https://habrastorage.org/webt/ax/01/rl/ax01rlkfna5cfkvzqk3qfao_lmq.gif)\
+
+
