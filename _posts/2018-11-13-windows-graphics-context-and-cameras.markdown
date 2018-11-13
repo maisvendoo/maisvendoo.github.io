@@ -105,6 +105,80 @@ int main(int argc, char *argv[])
 }
 ```
 
+Для задания настроек окна создаем экземпляр класса osg::GraphicsContext::Traits и инициализируем его необходимыми нам параметрами
+
+```cpp
+osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+traits->x = 50;
+traits->y = 50;
+traits->width = 800;
+traits->height = 600;
+traits->windowName = "OSG application";
+traits->windowDecoration = true;
+traits->doubleBuffer = true;
+traits->samples = 4;
+```
+
+После этого создаем графический контекст, передавая в качестве настроек указатель на traits
+
+```cpp
+osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+```
+
+Создаем камеру
+
+```cpp
+osg::ref_ptr<osg::Camera> camera = new osg::Camera;
+```
+
+Связываем камеру с созданным графическим контекстом
+
+```cpp
+camera->setGraphicsContext(gc);
+```
+
+Настрииваем вьюпорт, задаем маску очистки буферов, задаем цвет очистки 
+
+```cpp
+camera->setViewport( new osg::Viewport(0, 0, traits->width, traits->height) );
+camera->setClearMask(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+camera->setClearColor( osg::Vec4(0.2f, 0.2f, 0.4f, 1.0f) );
+```
+
+Настраиваем матрицу перспективной проекции
+
+```cpp
+double aspect = static_cast<double>(traits->width) / static_cast<double>(traits->height);
+camera->setProjectionMatrixAsPerspective(30.0, aspect, 1.0, 1000.0);
+```
+
+Не забываем включить тест глубины, для корректного отображения граней
+
+```cpp
+camera->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+```
+
+Загружаем модель самолета
+
+```cpp
+osg::ref_ptr<osg::Node> root = osgDB::readNodeFile("../data/cessna.osg");
+```
+
+Настраиваем и запускаем вьювер, указав настроенную нами камеру в качетве основной камеры
+
+```cpp
+osgViewer::Viewer viewer;
+viewer.setCamera(camera.get());
+viewer.setSceneData(root.get());
+
+return viewer.run();
+```
+
+На выходе иммем окно с требуемыми параметрами
+
 ![](https://habrastorage.org/webt/rs/av/d-/rsavd-z8aawrwpykioblv1kxsni.png)
 
+Звголовок окна не отображается потому, что в настройках моего оконного менеджера эта функция выключена. Если запустить пример в Windows или Linux с другими настройками, то заголовок будет на своем месте.
+
+К слову сказать, метод setUpViewInWindow(), который мы использовали ранее для запуска рендера в оконном режиме делает абсолютно то же самое, что мы проделали сейчас.
 
