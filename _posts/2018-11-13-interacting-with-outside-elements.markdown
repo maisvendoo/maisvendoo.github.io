@@ -166,4 +166,143 @@ int main(int argc, char *argv[])
 }
 ```
 
+Для решения этой задачи пишем класс-обработчик событий ввода
+
+```cpp
+class ModelController : public osgGA::GUIEventHandler
+{
+public:
+
+    ModelController( osg::MatrixTransform *node ) : _model(node) {}
+
+    virtual bool handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa);
+
+protected:
+
+    osg::ref_ptr<osg::MatrixTransform> _model;
+};
+```
+
+При конструировании данного класса, в качестве параметра ему передается указатель на узел трансформации, на который мы будем воздействовать в обработчике. Сам метод-обработчик handle() переопределяем следующим образом
+
+```cpp
+bool ModelController::handle(const osgGA::GUIEventAdapter &ea, osgGA::GUIActionAdapter &aa)
+{
+    (void) aa;
+
+    if (!_model.valid())
+        return false;
+
+    osg::Matrix matrix = _model->getMatrix();
+
+    switch (ea.getEventType())
+    {
+    case osgGA::GUIEventAdapter::KEYDOWN:
+        switch (ea.getKey())
+        {
+        case 'a': case 'A':
+            matrix *= osg::Matrix::rotate(-0.1, osg::Z_AXIS);
+            break;
+
+        case 'd': case 'D':
+            matrix *= osg::Matrix::rotate( 0.1, osg::Z_AXIS);
+            break;
+
+        case 'w': case 'W':
+            matrix *= osg::Matrix::rotate(-0.1, osg::X_AXIS);
+            break;
+
+        case 's': case 'S':
+            matrix *= osg::Matrix::rotate( 0.1, osg::X_AXIS);
+            break;
+
+        default:
+
+            break;
+        }
+
+        _model->setMatrix(matrix);
+
+        break;
+
+    default:
+
+        break;
+    }
+
+    return false;
+}
+```
+
+Среди сущесвенных деталей его реализации следует отметить, что мы, прежде всего должны получить матрицу трансформации из управляемого нами узла
+
+```cpp
+osg::Matrix matrix = _model->getMatrix();
+```
+
+Далее, два вложенных оператора switch() анализируют тип события (нажатие клавиши) и код нажатой клавиши. В зависимости от кода нажатой клавиши происходит домножение текущей матрицы трансформации на дополнительную матрицу поворота вокруг соответсвующей оси
+
+```cpp
+case 'a': case 'A':
+            matrix *= osg::Matrix::rotate(-0.1, osg::Z_AXIS);
+            break;
+```
+
+-- поворачиваем самолет по углы рыскания на -0.1 радиана при нажатии на клавишу "A".
+
+После обработки нажатия клавиш не забываем применить к узлу трансформации новую матрицу преобразования
+
+```cpp
+_model->setMatrix(matrix);
+```
+
+В функции main() загружаем модель самолета и создаем для него родительский узел трансформации, добавляя полученный субграф в корневую ноду сцены
+
+```cpp
+osg::ref_ptr<osg::Node> model = osgDB::readNodeFile("../data/cessna.osg");
+
+osg::ref_ptr<osg::MatrixTransform> mt = new osg::MatrixTransform;
+mt->addChild(model.get());
+
+osg::ref_ptr<osg::Group> root = new osg::Group;
+root->addChild(mt.get());
+```
+
+Создаем и инициализируем обработчик пользовательского ввода
+
+```cpp
+osg::ref_ptr<ModelController> mcontrol = new ModelController(mt.get());
+```
+
+Создаем вьювер, добавляя к нему наш обработчик
+
+```cpp
+osgViewer::Viewer viewer;
+viewer.addEventHandler(mcontrol.get());
+```
+
+Настраиваем видовую матрицу камеры
+
+```cpp
+viewer.getCamera()->setViewMatrixAsLookAt( osg::Vec3(0.0f, -100.0f, 0.0f), osg::Vec3(), osg::Z_AXIS );
+```
+
+Запрещаем камере принимать события с устройств ввода
+
+```cpp
+viewer.getCamera()->setAllowEventFocus(false);
+```
+
+Если этого не сделать, то обработчик, висящий на камере по-умолчанию будет перехватывать весь пользовательский ввод и мешать нашему обработчику. Задаем вьюверу данные сцены и запускаем его
+
+```cpp
+viewer.setSceneData(root.get());
+    
+return viewer.run();
+```
+
+Теперь, запустив программу мы сомжем управлять ориентацией самолета в пространстве нажатием клавиш A, D, W и S.
+
 ![](https://habrastorage.org/webt/a0/gu/od/a0guoddsokpfkthvefo07tfn1h4.gif)
+
+Интересным является вопрос, что должен возвращать метод handle() при выходе из него. Если будет возвращено true, то тем самым мы указываем OSG, то собития ввода нами уже обработаны и дальнейшая их обработка не нужна. Часще всего нас неустроит такое поведение, поэтому хорошей практикой будет возващать из обработчика false, дабы не прерывать обработку событий другими обрабтчиками, если таковые будут прикреплены к другим узлам сцены.
