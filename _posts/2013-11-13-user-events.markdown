@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Введение в OpenSceneGraph: Создание и обработки пользовательских событий"
+title:  "Введение в OpenSceneGraph: Создание и обработка пользовательских событий"
 date:   2018-11-13 13:01:00 +0300
 categories: jekyll update
 ---
