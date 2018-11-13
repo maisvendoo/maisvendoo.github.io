@@ -33,3 +33,78 @@ OSG использует класс osg::GraphicsContext для представ
 |quadBufferStereo   |bool                         |false                |Использовать счетверенный стерео-буфер (для оборудования NVidia)|
 |inheritedWindowData|osg::ref_ptr<osg::Referenced>|NULL                 |Описатель данных, ассоциированных с окном                       |
 
+
+Для инициализации объекта Traits необходимо выполнить следующий код
+
+```cpp
+osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+
+traits->x = 50;
+traits->y = 100;
+...
+```
+
+## Настраиваем окно приложения OSG
+
+Чтобы создать окно с заданными характеристиками, необходимо проделать следующие шаги:
+
+1. Настроить объект типа osg::GraphicsContext::Traits
+2. Создать графический контекст окна
+3. Связать этот графический контекст с камерой
+4. Сделать камеру основной для вьювера
+
+
+**main.h**
+```cpp
+#ifndef		MAIN_H
+#define		MAIN_H
+
+#include    <osg/GraphicsContext>
+#include    <osgDB/ReadFile>
+#include    <osgViewer/Viewer>
+
+#endif
+```
+
+**main.cpp**
+```cpp
+#include	"main.h"
+
+int main(int argc, char *argv[])
+{
+    (void) argc; (void) argv;
+
+    osg::ref_ptr<osg::GraphicsContext::Traits> traits = new osg::GraphicsContext::Traits;
+    traits->x = 50;
+    traits->y = 50;
+    traits->width = 800;
+    traits->height = 600;
+    traits->windowName = "OSG application";
+    traits->windowDecoration = true;
+    traits->doubleBuffer = true;
+    traits->samples = 4;
+
+    osg::ref_ptr<osg::GraphicsContext> gc = osg::GraphicsContext::createGraphicsContext(traits.get());
+
+    osg::ref_ptr<osg::Camera> camera = new osg::Camera;
+    camera->setGraphicsContext(gc);
+    camera->setViewport( new osg::Viewport(0, 0, traits->width, traits->height) );
+    camera->setClearMask(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+    camera->setClearColor( osg::Vec4(0.2f, 0.2f, 0.4f, 1.0f) );
+    double aspect = static_cast<double>(traits->width) / static_cast<double>(traits->height);
+    camera->setProjectionMatrixAsPerspective(30.0, aspect, 1.0, 1000.0);
+    camera->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+
+    osg::ref_ptr<osg::Node> root = osgDB::readNodeFile("../data/cessna.osg");
+
+    osgViewer::Viewer viewer;
+    viewer.setCamera(camera.get());
+    viewer.setSceneData(root.get());
+    
+    return viewer.run();
+}
+```
+
+![](https://habrastorage.org/webt/rs/av/d-/rsavd-z8aawrwpykioblv1kxsni.png)
+
+
