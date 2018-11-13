@@ -109,4 +109,130 @@ int main(int argc, char *argv[])
 }
 ```
 
+Для реализации подобной анимации необходимо сгенерировать набор текстур с изображением светящейся точки. Для этого напишем отдельную функцию
+
+```cpp
+osg::Image *createSpotLight(const osg::Vec4 &centerColor,
+                            const osg::Vec4 &bgColor,
+                            int size,
+                            float power)
+{
+    osg::ref_ptr<osg::Image> image = new osg::Image;
+    image->allocateImage(size, size, 1, GL_RGBA, GL_UNSIGNED_BYTE);
+
+    float mid = (float(size) - 1) * 0.5f;
+    float div = 2.0f / float(size);
+
+    for (int r = 0; r < size; ++r)
+    {
+        unsigned char *ptr = image->data(0, r);
+
+        for (int c = 0; c < size; ++c)
+        {
+            float dx = (float(c) - mid) * div;
+            float dy = (float(r) - mid) * div;
+
+            float r = powf(1.0f - sqrtf(dx*dx + dy*dy), power);
+
+            if (r < 0.0f)
+                r = 0.0f;
+
+            osg::Vec4 color = centerColor * r + bgColor * (1.0f - r);
+            *ptr++ = static_cast<unsigned char>((color[0]) * 255.0f);
+            *ptr++ = static_cast<unsigned char>((color[1]) * 255.0f);
+            *ptr++ = static_cast<unsigned char>((color[2]) * 255.0f);
+            *ptr++ = static_cast<unsigned char>((color[3]) * 255.0f);
+        }
+    }
+
+    return image.release();
+}
+```
+
+В качестве параметров функция будет принимать цвет источника, цвет фона, размер текстуры в пикселях (полагаем текстуру квадратной) и показатель мощности источника, на основании которого мы будем формировать его изображение. Чтобы не расписывать подробно алгоритм формирования изображения (оставлю это читателю для самостоятельного разбора), поясню только ключевые моменты. В функции мы создаем новое изображение и выделяем под него память в соответсвии с его размером и типом данных для отображения цветовых компонент
+
+```cpp
+osg::ref_ptr<osg::Image> image = new osg::Image;
+image->allocateImage(size, size, 1, GL_RGBA, GL_UNSIGNED_BYTE);
+```
+
+Далее вычисляем цвет каждого пикселя как суммарный цвет доли цвета источника и цвета фона
+
+```cpp
+osg::Vec4 color = centerColor * r + bgColor * (1.0f - r);
+```
+
+где r - параметр смешения, экспоненциально зависящий от заданной мощности источника и расстояния от точки до центра текстуры (полагаем, что источник находится в центре текстуры)
+
+```cpp
+float r = powf(1.0f - sqrtf(dx*dx + dy*dy), power);
+```
+
+Полученный цвет назначаем соотвествующему пикселю текстуры путем непосредственного обращения к буферу данных изображения по указателю ptr
+
+```cpp
+*ptr++ = static_cast<unsigned char>((color[0]) * 255.0f);
+*ptr++ = static_cast<unsigned char>((color[1]) * 255.0f);
+*ptr++ = static_cast<unsigned char>((color[2]) * 255.0f);
+*ptr++ = static_cast<unsigned char>((color[3]) * 255.0f);
+```
+
+который берем из объекта изображения
+
+```cpp
+unsigned char *ptr = image->data(0, r);
+```
+
+В функции main() задаем цвет источника и цвет фона
+
+```cpp
+osg::Vec4 centerColor(1.0f, 1.0f, 0.0f, 1.0f);
+osg::Vec4 bgColor(0.0f, 0.0f, 0.0f, 1.0f);
+```
+
+Создаем объект последовательности изображений, заполняя его несколькими изображениями источника с разной яркостью
+
+```cpp
+osg::ref_ptr<osg::ImageSequence> sequence = new osg::ImageSequence;
+sequence->addImage(createSpotLight(centerColor, bgColor, 64, 3.0f));
+sequence->addImage(createSpotLight(centerColor, bgColor, 64, 3.5f));
+sequence->addImage(createSpotLight(centerColor, bgColor, 64, 4.0f));
+sequence->addImage(createSpotLight(centerColor, bgColor, 64, 3.5f));
+```
+
+Создаем текстуру из данной последовательности
+
+```cpp
+osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
+texture->setImage(sequence.get());
+```
+
+Создаем квадратный полигон и применяем к нему данную текстуру
+
+```cpp
+osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+geode->addDrawable(osg::createTexturedQuadGeometry(osg::Vec3(),
+                                                   osg::Vec3(1.0, 0.0, 0.0),
+                                                   osg::Vec3(0.0, 0.0, 1.0)));
+geode->getOrCreateStateSet()->setTextureAttributeAndModes(0, texture.get(), osg::StateAttribute::ON);
+```
+
+Задаем продолжительность проигрывания последовательности в полсекунды и запускаем проигрывание
+
+```cpp
+sequence->setLength(0.5);
+sequence->play();
+```
+
+Инициализируем и запускаем вьювер (можно я не буду больше об этом писать?)
+
+```cpp
+osgViewer::Viewer viewer;
+viewer.setSceneData(geode.get());
+
+return viewer.run();
+```
+
+В итоге имеем интересный эффект динамической текстуры
+
 ![](https://habrastorage.org/webt/sn/nl/bf/snnlbf7fbtkcqxpstokpotk-cuk.gif)
