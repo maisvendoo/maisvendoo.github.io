@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Введение в OpenSceneGraph: Пример реализации собственного плагина"
+title:  "Введение в OpenSceneGraph: Пример реализации собственного плагина - настройка проекта"
 date:   2018-11-16 11:13:00 +0300
 categories: jekyll update
 ---
@@ -161,4 +161,8 @@ node = osdDB::readNodeFile("piramide.pmd");
 $ osgviewer piramide.pmd
 ```
 
-то это так же вызовет срабатывание нашего плагина.
+то это так же вызовет срабатывание плагина. В настройках запуска проекта укажем путь к osgviewerd, в качестве рабочего каталога укажем тот католог, где лежит файл piramide.pmd, и этот же файл укажем в опциях командной строки osgviewer
+
+![](https://habrastorage.org/webt/v8/9y/xa/v89yxafvygysowtw7aeihf9mgcs.png)
+
+Теперь мы сможем запускать плагин и отлаживать его прямо из IDE QtCreator. 
