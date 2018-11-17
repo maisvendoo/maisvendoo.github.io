@@ -12,6 +12,8 @@ categories: jekyll update
 3. Правильно настроить геометрический объект osg::Drawable по данным, прочитанным из файла
 4. Построить субграф сцены для загруженной модели
 
+## Реализуем каркас плагина
+
 Итак, по традиции, приведу исходный код плагина целиком
 
 **main.h**
@@ -272,4 +274,188 @@ struct pmd_mesh_t
         return n * (1 / n.length());
     }
 };
+```
+
+Структура состоит содержит переменные-члены для хранения данных: vertices -- для храниения массива вершин геометрического объекта; normals -- массив номалей к граням объекта; faces - список граней объекта. В конструкторе структуры сразу выполняется инициализация умных указателей
+
+```cpp
+pmd_mesh_t()
+        : vertices(new osg::Vec3Array)
+        , normals(new osg::Vec3Array)
+{
+
+}
+```
+
+Кроме того, структура содержит метод, позволяющий расчитать вектор-нормаль к грани calcFaceNormal() в качестве параметра принимающий структуру, описывающую грань. В детали реализации этого метода мы пока не будетм вдаваться, резберем их несколько позже.
+
+Таким образом, мы определились со структурами, в которых будем хранить данные геометрии. Теперь напишем каркас нашего плагина, а именно реализуем класс-наследник osgDB::ReaderWriter
+
+```cpp
+class ReaderWriterPMD : public osgDB::ReaderWriter
+{
+public:
+
+    ReaderWriterPMD();
+
+    virtual ReadResult readNode(const std::string &filename,
+                                const osgDB::Options *options) const;
+
+    virtual ReadResult readNode(std::istream &stream,
+                                const osgDB::Options *options) const;
+
+private:
+
+    pmd_mesh_t parsePMD(std::istream &stream) const;
+
+    std::vector<std::string> parseLine(const std::string &line) const;
+};
+```
+
+Как и рекомендуется в описании API к разработке плагинов, в данном классе переопределяем методы чтения данных из файла и преобразования их в субграф сцены. У метода readNode() делаем две перегрузки - одна принимает на вход имя файла, другая - стандартный поток ввода. Конструктор класса определяет расширения файлов, поддерживаемых плагином
+
+```cpp
+ReaderWriterPMD::ReaderWriterPMD()
+{
+    supportsExtension("pmd", "PMD model file");
+}
+```
+
+Первая перегрузка метода readNode() анализирует корректность имени файла и пути к нему, связывает с файлом стандартный поток ввода и вызывает вторую перегрузку, выполняющую основную работу
+
+```cpp
+osgDB::ReaderWriter::ReadResult ReaderWriterPMD::readNode(
+        const std::string &filename,
+        const osgDB::Options *options) const
+{
+    // Получаем расширение из пути к файлу
+    std::string ext = osgDB::getLowerCaseFileExtension(filename);
+
+    // Проверяем, поддерживает ли плагин это расширение
+    if (!acceptsExtension(ext))
+        return ReadResult::FILE_NOT_HANDLED;
+
+    // Проверяем, имеется ли данный файл на диске
+    std::string fileName = osgDB::findDataFile(filename, options);
+
+    if (fileName.empty())
+        return ReadResult::FILE_NOT_FOUND;
+
+    // Связваем поток ввода с файлом
+    std::ifstream stream(fileName.c_str(), std::ios::in);
+
+    if (!stream)
+        return ReadResult::ERROR_IN_READING_FILE;
+
+    // Вызываем основную рабочую перегрузку метода readNode()
+    return readNode(stream, options);
+}
+```
+
+Во второй перегрузке реализуем алгоритм формирования объекта для OSG
+
+```cpp
+osgDB::ReaderWriter::ReadResult ReaderWriterPMD::readNode(
+        std::istream &stream,
+        const osgDB::Options *options) const
+{
+    (void) options;
+
+    // Парсим файл *.pmd извлекая из него данные о геометрии
+    pmd_mesh_t mesh = parsePMD(stream);
+
+    // Создаем геометрию объекта
+    osg::ref_ptr<osg::Geometry> geom = new osg::Geometry;
+    // Задаем массив вершин
+    geom->setVertexArray(mesh.vertices.get());
+
+    // Формируем грани объекта
+    for (size_t i = 0; i < mesh.faces.size(); ++i)
+    {
+        // Создаем примитив типа GL_POLYGON с пустым списком индексов вершин (второй параметр - 0)
+        osg::ref_ptr<osg::DrawElementsUInt> polygon = new osg::DrawElementsUInt(osg::PrimitiveSet::POLYGON, 0);
+
+        // Заполняем индексы вершин для текущей грани
+        for (size_t j = 0; j < mesh.faces[i].indices.size(); ++j)
+            polygon->push_back(mesh.faces[i].indices[j]);
+
+        // Добаляем грань к геометрии
+        geom->addPrimitiveSet(polygon.get());
+    }
+
+    // Задаем массив нормалей
+    geom->setNormalArray(mesh.normals.get());
+    // Указываем OpenGL, что каждая нормаль применяется к примитиву
+    geom->setNormalBinding(osg::Geometry::BIND_PER_PRIMITIVE_SET);
+
+    // Создаем листовой узел графа сцены и добавляем в него сформированную нами геометрию
+    osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+    geode->addDrawable(geom.get());
+
+    // Возвращаем готовый листовой узел
+    return geode.release();
+}
+```
+
+В конце файла main.cpp вызываем макрос REGISTER_OSGPLUGIN()
+
+```cpp
+REGISTER_OSGPLUGIN( pmd, ReaderWriterPMD )
+```
+
+Этот макрос формирует дополнительный код, позволяющий OSG, в лице бибилиотеки osgDB, сконструировать объект типа ReaderWriterPMD и вызвать его методы для загрузки файлов типа pmd. Таким образом, каркас плагин готов, дело осталось за малым -- реализовать загрузку и разбор файла pmd.
+
+## Парсим файл 3D-модели
+
+Теперь весь функционал плагина упирается в реализацию метода parsePMD()
+
+```cpp
+pmd_mesh_t ReaderWriterPMD::parsePMD(std::istream &stream) const
+{
+    pmd_mesh_t mesh;
+
+    // Читаем файл построчно
+    while (!stream.eof())
+    {
+        // Получаеми из файла очередную строку
+        std::string line;
+        std::getline(stream, line);
+
+        // Разбиваем строку на состовлящие - тип данный и параметры
+        std::vector<std::string> tokens = parseLine(line);
+
+        // Если тип данных - вершина
+        if (tokens[0] == "vertex")
+        {
+            // Читаем координаты вершины из списка параметров
+            osg::Vec3 point;
+            std::istringstream iss(tokens[1]);
+            iss >> point.x() >> point.y() >> point.z();
+            // Добавляем вершину в массив вершин
+            mesh.vertices->push_back(point);
+        }
+
+        // Если тип данных - грань
+        if (tokens[0] == "face")
+        {
+            // Читаем все индексы вершин грани из списка параметров
+            unsigned int idx = 0;
+            std::istringstream iss(tokens[1]);
+            face_t face;
+
+            while (!iss.eof())
+            {
+                iss >> idx;
+                face.indices.push_back(idx);
+            }
+
+            // Добавляем грань в список граней
+            mesh.faces.push_back(face);
+            // Вычисляем нормаль к грани
+            mesh.normals->push_back(mesh.calcFaceNormal(face));
+        }
+    }
+
+    return mesh;
+}
 ```
