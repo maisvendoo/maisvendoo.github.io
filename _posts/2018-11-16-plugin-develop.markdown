@@ -459,3 +459,53 @@ pmd_mesh_t ReaderWriterPMD::parsePMD(std::istream &stream) const
     return mesh;
 }
 ```
+
+Метод parseLine() выполняет разбор строки pmd-файла
+
+```cpp
+std::vector<std::string> ReaderWriterPMD::parseLine(const std::string &line) const
+{
+    std::vector<std::string> tokens;
+    // Формируем временную строку, удаляя из текущей строки символ возврата каретки (для Windows)
+    std::string tmp = delete_symbol(line, '\r');
+
+    size_t pos = 0;
+    std::string token;
+
+    // Ищем разделитель типа данных и параметров, разбивая строку на два токена:
+    // тип данных и сами данные
+    while ( (pos = tmp.find(':')) != std::string::npos )
+    {
+       // Выделяем токен типа данных (vertex или face в даннос случае) 
+       token = tmp.substr(0, pos);
+       // Удаляем найденный токен из строки вместе с разделителем
+       tmp.erase(0, pos + 1);
+
+       if (!token.empty())
+           tokens.push_back(token);
+    }
+
+    // Помещаем оставшуюся часть строки в список токенов
+    tokens.push_back(tmp);
+
+    return tokens;
+}
+```
+
+Этот метод предватит строку "vertex: 1.0 -1.0 0.0" в список двух строк "vertex" и " 1.0 -1.0 0.0". По первой строке мы идентифицируем тип данных - вершина или грань, из второй извлечем данные о координатах вершины. Для обеспечения работы этого метода нужна вспомогательная функция delete_symbol(), удаляющая из строки заданный символ и возвращающая строку не содержащую этого символа
+
+```cpp
+std::string delete_symbol(const std::string &str, char symbol)
+{
+    std::string tmp = str;
+    tmp.erase(std::remove(tmp.begin(), tmp.end(), symbol), tmp.end());
+    return tmp;
+}
+```
+
+То есть теперь мы реализовали весь функционал нашего плагина и можем его протестировать.
+
+## Тестируем плагин. Понятие о сглаженных номалях и когда их не стоит применять
+
+Коспилируем плагин и запускаем отладку (F5). Будет запущена отладочная весия стандартного просмотрщика osgviewerd, которая проанализиует переданный её файл piramide.pmd, загрузит наш плагин и вызовет его метод readNode(). Если мы сделали всё правильно, то мы получим такой результат
+
